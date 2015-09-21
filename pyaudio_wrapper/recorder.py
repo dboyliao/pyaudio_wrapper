@@ -1,16 +1,6 @@
 import pyaudio, io
 
-class AudioSource(object):
-    def __init__(self):
-        raise NotImplementedError("this is an abstract class")
-
-    def __enter__(self):
-        raise NotImplementedError("this is an abstract class")
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        raise NotImplementedError("this is an abstract class")
-
-class Recorder(AudioSource):
+class MicrophoeRecorder(object):
 
     def __init__(self, device_index = None, sample_rate = 16000, chunck_size =1024, bit_width = pyaudio.paInt16, channels = 1):
         assert device_index is None or isinstance(device_index, int), "`device_index` must be integer."
@@ -28,6 +18,12 @@ class Recorder(AudioSource):
         self.__bit_width = pyaudio.paInt16
         self.__sample_rate = sample_rate
         self.channels = channels
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
 
     @property
     def input_stream(self):

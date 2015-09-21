@@ -11,3 +11,9 @@ rr = Recorder() # Recording the sound from default microphone.
 rr.plot() # Plot out the wav file.
 rr.play() # play out the wav file.
 ```
+
+
+# Reference
+
+- This package is inspired by the `speech_recognition` module by `Uberi`. [GitHub](https://github.com/Uberi/speech_recognition)
+- [PyAudio](https://people.csail.mit.edu/hubert/pyaudio/docs/index.html#)
