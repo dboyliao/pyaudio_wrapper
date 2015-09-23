@@ -10,7 +10,8 @@ import matplotlib.pylab as plt
 from scipy.io import wavfile
 
 # submodules
-from .source import AudioSource, Microphone
+from .source import Microphone
+from ._source_abc import AudioSource
 
 class Recorder(object):
 
@@ -20,6 +21,9 @@ class Recorder(object):
 		self.current_source = None
 
 	def listen(self, source, duration = None, offset = None):
+		pass
+
+	def record(self, source, duration = None, offset = None):
 		"""
 		source: An AudioSource instance.
 		"""
