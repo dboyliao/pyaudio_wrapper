@@ -2,7 +2,7 @@ __all__ = ["AudioSource"]
 
 from abc import ABCMeta, abstractmethod
 
-def _abstract_method(fun):
+def _abstractmethod(fun):
 	"""
 	This decorator will make `fun` be an abstract method which
 	will raise NotImplementedError with a proper message.
@@ -40,7 +40,7 @@ class AudioSource(object):
 
 	__metaclass__ = ABCMeta
 
-	@_abstract_method
+	@_abstractmethod
 	def __init__(self):
 		pass
 
@@ -56,8 +56,12 @@ class AudioSource(object):
 	def read(self):
 		pass
 
-	@abstractmethod
+	@_abstractmethod
 	def write(self):
+		pass
+
+	@_abstractmethod
+	def close(self):
 		pass
 
 	@_abstract_property

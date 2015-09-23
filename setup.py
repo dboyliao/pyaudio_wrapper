@@ -16,6 +16,6 @@ setup(
 	license = __license__,
 	keywords = "pyaudio wrapper",
 	url = "https://github.com/dboyliao/Python_Audio_Utilities/tree/micro_phone",
-	packages = ["pyaudio_wrapper", "test"],
+	packages = ["pyaudio_wrapper"],
 	install_requires = ["pyaudio", "numpy", "scipy"]
 )

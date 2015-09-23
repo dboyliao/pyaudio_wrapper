@@ -72,20 +72,21 @@ class Microphone(AudioSource):
 
 		return self.output_stream.write(self.CHUNK_SIZE)
 
+	def close(self):
+		if self.device_type == "output":
+			self.output_stream.stop_stream()
+			self.output_stream.close()
+		elif self.device_type == "input":
+			self.input_stream.stop_stream()
+			self.input_stream.close()
+
 	def __enter__(self):
 		assert self.__input_stream is None, "This audio source is already inside a context manager."
 
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		if self.device_type == "input":
-			self.input_stream.stop_stream()
-			self.input_stream.close()
-			self.input_stream = None
-		else:
-			self.output_stream.stop_stream()
-			self.output_stream.close()
-			self.input_stream = None
+		self.close()
 		self.audio.terminate()
 
 	## Reimplement all required properties.
