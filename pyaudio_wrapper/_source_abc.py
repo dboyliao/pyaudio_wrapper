@@ -35,7 +35,6 @@ def _abstract_property(fun):
 
 	return wrapped
 
-
 class AudioSource(object):
 
 	__metaclass__ = ABCMeta
@@ -52,16 +51,8 @@ class AudioSource(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		pass
 
-	@_abstractmethod
-	def read(self):
-		pass
-
-	@_abstractmethod
-	def write(self):
-		pass
-
-	@_abstractmethod
-	def close(self):
+	@_abstract_property
+	def audio(self):
 		pass
 
 	@_abstract_property
@@ -84,3 +75,6 @@ class AudioSource(object):
 	def SAMPLE_RATE(self):
 		pass
 
+	@_abstract_property
+	def FORMAT(self):
+		pass
