@@ -17,3 +17,5 @@ rr.play() # play out the wav file.
 
 - This package is inspired by the `speech_recognition` module by `Uberi`. [GitHub](https://github.com/Uberi/speech_recognition)
 - [PyAudio](https://people.csail.mit.edu/hubert/pyaudio/docs/index.html#)
+- [24-bits Scipy](https://github.com/scipy/scipy/issues/1930)
+- [24-bits wave](http://stackoverflow.com/questions/16767248/how-do-i-write-a-24-bit-wav-file-in-python)

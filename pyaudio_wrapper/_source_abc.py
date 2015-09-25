@@ -51,6 +51,14 @@ class AudioSource(object):
 	def __exit__(self, exc_type, exc_value, traceback):
 		pass
 
+	@_abstractmethod
+	def read(self):
+		pass
+
+	@_abstractmethod
+	def write(self):
+		pass
+
 	@_abstract_property
 	def audio(self):
 		pass

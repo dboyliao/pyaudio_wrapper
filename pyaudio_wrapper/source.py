@@ -2,6 +2,7 @@ __all__ = ["Microphone"]
 
 ## Import standard libraries.
 from functools import wraps
+import os
 
 ## Import necessary third party packages.
 from scipy.io import wavfile
@@ -9,6 +10,7 @@ import pyaudio
 
 ## Import submodules.
 from ._source_abc import AudioSource
+from .audio_data import AudioData, WavAudioData
 from .exceptions import DeviceTypeError
 
 def _under_audio_context(method):
@@ -98,12 +100,46 @@ class Microphone(AudioSource):
 		return device_info
 
 	def __enter__(self):
-		assert self.audio is None, "This audio source is already inside a context manager."
-		self.audio = pyaudio.PyAudio()
+		self.start()
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.close()
+
+	def start(self):
+		assert self.audio is None, "This audio source is already inside a context manager."
+		self.audio = pyaudio.PyAudio()
+
+	@_under_audio_context
+	def close(self):
+		if self.device_type == "output":
+			self.output_stream.stop_stream()
+			self.output_stream.close()
+		elif self.device_type == "input":
+			self.input_stream.stop_stream()
+			self.input_stream.close()
+		self.audio.terminate()
+		self.audio = None
+
+	@_under_audio_context
+	def read(self, chunk_size = None):
+		
+		if not self.device_type == "input":
+			raise DeviceTypeError("Can not read from a non-input device.")
+
+		if chunk_size is None:
+			data = bytes(self.input_stream.read(self.CHUNK_SIZE))
+		else:
+			assert isinstance(chunk_size, int), "`chunk_size` must be integer."
+			data = bytes(self.input_stream.read(chunk_size))
+		return data
+
+	@_under_audio_context
+	def write(self, data):
+		if not self.device_type == "output":
+			raise DeviceTypeError("Can not write to a non-output device.")
+
+		self.output_stream.write(chunk_size)
 
 	## Reimplement all required properties.
 	@property
@@ -127,14 +163,6 @@ class Microphone(AudioSource):
 			raise RuntimeError("It is not allowed to modify the `BIT_WIDTH`.")
 		else:
 			self.__bit_width = value
-
-	@property
-	def BYTE_WIDTH(self):
-		return pyaudio.get_sample_size(self.BIT_WIDTH)
-
-	@BYTE_WIDTH.setter
-	def BYTE_WIDTH(self, value):
-		raise RuntimeError("It is not allowed to modify the `BYTE_WIDTH`.")
 
 	@property
 	def SAMPLE_RATE(self):
@@ -178,37 +206,6 @@ class Microphone(AudioSource):
 		raise RuntimeError("Not allow to modify the format.")
 
 	## Other useful properties and methods
-	@_under_audio_context
-	def read(self, chunk_size = None):
-		
-		if not self.device_type == "input":
-			raise DeviceTypeError("Can not read from a non-input device.")
-
-		if chunk_size is None:
-			data = bytes(self.input_stream.read(self.CHUNK_SIZE))
-		else:
-			assert isinstance(chunk_size, int), "`chunk_size` must be integer."
-			data = bytes(self.input_stream.read(chunk_size))
-		return data
-
-	@_under_audio_context
-	def write(self, data):
-		if not self.device_type == "output":
-			raise DeviceTypeError("Can not write to a non-output device.")
-
-		self.output_stream.write(chunk_size)
-
-	@_under_audio_context
-	def close(self):
-		if self.device_type == "output":
-			self.output_stream.stop_stream()
-			self.output_stream.close()
-		elif self.device_type == "input":
-			self.input_stream.stop_stream()
-			self.input_stream.close()
-		self.audio.terminate()
-		self.audio = None
-
 	@property
 	def input_stream(self):
 		if self.device_type is not "input":
@@ -243,7 +240,7 @@ class Microphone(AudioSource):
 		if self.audio is None:
 			raise RuntimeError("Working outside of source context")
 		self.__output_stream = self.audio.open(
-			input_device_index = self.device_index,
+			output_device_index = self.device_index,
 			format = self.BIT_WIDTH,
 			rate = self.SAMPLE_RATE,
 			channels = self.CHANNELS,
@@ -259,20 +256,66 @@ class Microphone(AudioSource):
 		else:
 			self.__output_stream = value
 
-class WavAudio(AudioSource):
+class WavFile(AudioSource):
 
-	def __init__(self):
-		pass
+	def __init__(self, filename, output_device_index = None, output = False):
+		assert isinstance(filename, str), "`filename` must be a string."
+		assert isinstance(output_device_index, int) or output_device_index is None, "`output_device_index` must be either None or integer."
+
+		if not os.path.exists(os.path.abspath(filename)):
+			raise IOError("No such file.")
+
+		self.name = os.path.basename(filename)
+		self.fname = filename
+		self.device_index = output_device_index
+
+		self.__wav_file = None 
+		self.__audio = None
+		self.__output_stream = None
+		self.__output = output
 
 	def __enter__(self):
-		pass
+		assert self.audio is None, "This audio source is already inside a context manager."
+
+		self.audio = pyaudio.PyAudio()
+		self.output_stream = pyaudio.open()		
 
 	def __exit__(self):
 		pass
 
+	@_under_audio_context
+	def read(self):
+		pass
+
+	@_under_audio_context
+	def write(self):
+		if not self.is_output:
+			raise RuntimeError("Can not write to non-output wav file.")
+		pass
+
+	@property
+	def device_info(self):
+		audio = pyaudio.PyAudio()
+		if self.device_index is None:
+			info = audio.get_default_output_device_info()
+		else:
+			info = audio.get_device_info_by_index(self.device_index)
+		audio.terminate()
+		return info
+
+	@property
+	def is_output(self):
+		return self.__output
+
 	@property
 	def audio(self):
-		pass
+		return self.__audio
+
+	@audio.setter
+	def audio(self, value):
+		if not isinstance(value, pyaudio.PyAudio) or not value is None:
+			raise ValueError("audio can be of type {} or None only.".format(pyaudio.PyAudio))
+		self.__audio = value
 
 	@property
 	def CHUNK_SIZE(self):
@@ -292,16 +335,4 @@ class WavAudio(AudioSource):
 
 	@property
 	def CHANNELS(self):
-		pass
-
-	@_under_audio_context
-	def read(self):
-		pass
-
-	@_under_audio_context
-	def write(self):
-		pass
-
-	@_under_audio_context
-	def play(self, start = None, end = None):
 		pass
