@@ -7,6 +7,7 @@ develop:
 
 develop-clean:
 	python setup.py develop --uninstall
+	make clean
 
 install:
 	python setup.py install --record .temp_install_path.txt

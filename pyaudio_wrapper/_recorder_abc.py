@@ -1,15 +1,15 @@
 __all__ = ["AbstractRecorder"]
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from ._utils import _abstractmethod
 
 class AbstractRecorder(object):
 	__metaclass__ = ABCMeta
 
-	@abstractmethod
+	@_abstractmethod
 	def record(self):
-		raise NotImplementedError("Please reimplement this method.")
+		pass
 
-	@abstractmethod
+	@_abstractmethod
 	def listen(self):
-		raise NotImplementedError("Please reimplement this method.")
-
+		pass

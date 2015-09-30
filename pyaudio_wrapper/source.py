@@ -1,3 +1,7 @@
+"""
+The `source` submodule: a module which defines all available audio source.
+"""
+
 __all__ = ["Microphone"]
 
 ## Import standard libraries.
@@ -10,28 +14,9 @@ import pyaudio
 
 ## Import submodules.
 from ._source_abc import AudioSource
+from _utils import _under_audio_context
 from .audio_data import AudioData, WavAudioData
 from .exceptions import DeviceTypeError
-
-def _under_audio_context(method):
-	"""
-	A decorator which makes the instance method can only work
-	under audio context.
-
-	ex:
-		with AudioSource() as source: .....
-
-	Raise:
-		RunTimeError
-	"""
-
-	@wraps(method)
-	def wrapped(self, *args, **kwargs):
-		if self.audio is None:
-			raise RuntimeError("Working outside of source context")
-		return method(self, *args, **kwargs)
-
-	return wrapped
 
 class Microphone(AudioSource):
 

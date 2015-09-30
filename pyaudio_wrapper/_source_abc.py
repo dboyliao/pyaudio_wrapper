@@ -1,39 +1,7 @@
 __all__ = ["AudioSource"]
 
-from abc import ABCMeta, abstractmethod
-
-def _abstractmethod(fun):
-	"""
-	This decorator will make `fun` be an abstract method which
-	will raise NotImplementedError with a proper message.
-	"""
-	
-	@abstractmethod
-	def wrapped(*args, **kwargs):
-		"""
-		This method is an abstract method.
-		"""
-		message = "You should not call this superclass' method. Please reimplement it: {}".format(fun.__name__)
-		raise NotImplementedError(message)
-
-	return wrapped
-
-def _abstract_property(fun):
-	"""
-	This decorator will make `fun` be an abstract propery
-	and raise NotImplementedError with proper message.
-	"""
-
-	@property
-	@abstractmethod
-	def wrapped(*args, **kwargs):
-		"""
-		This property is an abstract property.
-		"""
-		message = "You must reimplement this abstract property: {}".format(fun.__name__)
-		raise NotImplementedError(message)
-
-	return wrapped
+from abc import ABCMeta
+from ._utils import _abstractmethod, _abstract_property
 
 class AudioSource(object):
 
