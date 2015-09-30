@@ -28,6 +28,14 @@ analysor.plot() # plot the audio data.
 analysor.fft() # fast fourier transform.
 ```
 
+# Installation
+
+```
+git clone https://github.com/dboyliao/pyaudio_wrapper.git
+cd pyaudio_wrapper
+make install      # Run `make uninstall` if you want to uninstall this package. 
+```
+
 # Reference
 
 - This package is inspired by the `speech_recognition` module by `Uberi`. [GitHub](https://github.com/Uberi/speech_recognition)
