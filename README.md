@@ -2,16 +2,31 @@
 
 [`PyAudio`](https://people.csail.mit.edu/hubert/pyaudio/) is a python bindings for [`PortAudio`](http://www.portaudio.com/). However, the api, to my humble opinion, is not so friendly to the programmer who has no deep or comprehensive knowledge about audio data. This package is yet again another wrapper build upon `PyAudio` in order to provide a friendly api.
 
-# Basic Usage (Probably the ONLY Usage. XD)
+# Basic Usage
+
+## Recording Audio Data From Microphone
 
 ```{python}
-from pyaudio_wrapper.recorder import Recorder
+from pyaudio_wrapper import Recorder
+from pyaudio_wrapper.source import Microphone
 
-rr = Recorder() # Recording the sound from default microphone.
-rr.plot() # Plot out the wav file.
-rr.play() # play out the wav file.
+recorder = Recorder() # Recording the sound from default microphone.
+with Microphone() as source:
+    wav_audio = recorder.record(source)
+
+wav_audio.play() # play out the audio.
+wav_audio.data # an numpy array of this audio data
 ```
 
+## Analyse Audio Data
+
+```{python}
+from pyaudio_wrapper.analyse import Analysor
+
+analysor = Analysor(wav_audio)
+analysor.plot() # plot the audio data.
+analysor.fft() # fast fourier transform.
+```
 
 # Reference
 

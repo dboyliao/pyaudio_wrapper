@@ -1,4 +1,4 @@
-__all__ = ["MicrophoneRecorder", "Recorder"]
+__all__ = ["Recorder"]
 
 # standard libraries.
 from io import BytesIO
@@ -10,7 +10,6 @@ import matplotlib.pylab as plt
 from scipy.io import wavfile
 
 # submodules
-from .source import Microphone
 from .audio_data import AudioData, WavAudioData
 from ._source_abc import AudioSource
 from ._recorder_abc import AbstractRecorder
@@ -107,9 +106,4 @@ class Recorder(AbstractRecorder):
 	@source.setter
 	def source(self, value):
 		raise RuntimeError("Not allowed to directly modify `source` attribute. Use set_resource method instead.")
-
-class MicrophoneRecorder(Recorder):
-
-	def record(self, source, *args, **kwargs):
-		super(MicrophoneRecorder, self).record(source = source, *args, **kwargs)
 
