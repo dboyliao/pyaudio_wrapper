@@ -19,3 +19,4 @@ rr.play() # play out the wav file.
 - [PyAudio](https://people.csail.mit.edu/hubert/pyaudio/docs/index.html#)
 - [24-bits Scipy](https://github.com/scipy/scipy/issues/1930)
 - [24-bits wave](http://stackoverflow.com/questions/16767248/how-do-i-write-a-24-bit-wav-file-in-python)
+- [IOError](http://stackoverflow.com/questions/28174540/ioerror-errno-input-overflowed-9981)

@@ -21,7 +21,7 @@ from .exceptions import DeviceTypeError
 class Microphone(AudioSource):
 
 	## Reimplement all required abstract methods
-	def __init__(self, device_index = None, sample_rate = None, bit_width = None, chunk_size = 1024, channels = 1):
+	def __init__(self, device_index = None, sample_rate = None, bit_width = None, chunk_size = 8092, channels = 1):
 		
 		### Checking the parameters ###
 		audio = pyaudio.PyAudio()

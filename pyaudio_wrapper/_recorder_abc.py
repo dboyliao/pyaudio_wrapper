@@ -9,7 +9,3 @@ class AbstractRecorder(object):
 	@_abstractmethod
 	def record(self):
 		pass
-
-	@_abstractmethod
-	def listen(self):
-		pass
