@@ -2,6 +2,7 @@ __all__ = ["AudioData", "WavAudioData", "WavFileAudioData"]
 
 import io, wave, os
 import numpy as np
+from scipy.io import wavfile
 import pyaudio
 
 from ._audio_data_abc import AudioDataABC
@@ -70,7 +71,7 @@ class AudioData(AudioDataABC):
 	@property
 	def BYTE_DATA(self):
 		"""
-		raw byte data.
+		raw byte data of frames.
 		"""
 		return self.__byte_data
 
@@ -113,6 +114,9 @@ class AudioData(AudioDataABC):
 			return len(self.data[0])/self.SAMPLE_RATE
 		return len(self.data)/self.SAMPLE_RATE
 
+	def __getitem__(self, i):
+		return self.data[:,i]
+
 
 class WavAudioData(AudioData):
 
@@ -123,31 +127,55 @@ class WavAudioData(AudioData):
 	@property
 	def raw_wav_data(self):
 		"""
-		Convert original byte string into wav formated data.
+		Raw WAV audio data.
 		"""
-
-		with io.BytesIO() as wav_file:
-			try:
-				wav_writer = wave.open(wav_file, "wb")
-				wav_writer.setframerate(self.SAMPLE_RATE)
-				wav_writer.setsampwidth(self.BIT_WIDTH)
-				wav_writer.setnchannels(self.CHANNELS)
-				wav_writer.writeframes(self.BYTE_DATA)
-			except ValueError as e:
-				raise e
-			finally:
-				wav_writer.close()
-			data = wav_file.getvalue()
-		return data
+		return self.__get_raw_wav_data_from_byte(self.BYTE_DATA, self.CHANNELS)
 
 	@raw_wav_data.setter
 	def raw_wav_data(self, value):
 		raise RuntimeError("It is not allowed to modify this attribute.")
 
-	def play(self):
+	def __get_raw_wav_data_from_byte(self, byte_data, channels):
+		"""
+		Convert original byte data into wav formated byte data.
+		"""
+		with io.BytesIO() as wav_file:
+			try:
+				wav_writer = wave.open(wav_file, "wb")
+				wav_writer.setframerate(self.SAMPLE_RATE)
+				wav_writer.setsampwidth(self.BIT_WIDTH)
+				wav_writer.setnchannels(channels)
+				wav_writer.writeframes(byte_data)
+			except ValueError as e:
+				raise e
+			finally:
+				wav_writer.close()
+			wav_data = wav_file.getvalue()
+		return wav_data
+
+	def __get_raw_wav_data_from_array(self, array):
+		"""
+		`array`: a 1-D or a 2-D numpy array.
+		"""
+		if not array.shape[1] == 2:
+			array = array.T
+
+		with io.BytesIO() as wav_file:
+			wavfile.write(wav_file, self.SAMPLE_RATE, array)
+			data = wav_file.getvalue()
+		return data
+
+
+	def play(self, start = 0, stop = None):
 		"""
 		Play the audio data by default output device.
+
+		`start` <float>: where to start playing the audio (in seconds).
+		`stop` <float>: where to stop playing the audio (in seconds).
 		"""
+		assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
+		assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
+
 		audio = pyaudio.PyAudio()
 		output_device_info = audio.get_default_output_device_info()
 		output_stream = audio.open(
@@ -156,7 +184,18 @@ class WavAudioData(AudioData):
 						format = self.format,
 						rate = self.SAMPLE_RATE,
 						channels = self.CHANNELS)
-		output_stream.write(self.raw_wav_data)
+		if start == 0 and stop is None:
+			output_stream.write(self.raw_wav_data)
+		else:
+			start_index = int(round(self.SAMPLE_RATE * start))
+			if stop is not None:
+				stop_index = int(round(self.SAMPLE_RATE * stop))
+			else:
+				stop_index = stop
+
+			data = self.__get_raw_wav_data_from_array(self[start_index:stop_index])
+			output_stream.write(data)
+
 		output_stream.stop_stream()
 		output_stream.close()
 		audio.terminate()

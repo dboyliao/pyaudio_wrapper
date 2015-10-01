@@ -43,6 +43,7 @@ class Recorder(AbstractRecorder):
 		frames = []
 
 		while True:
+			
 			data = self.source.read()
 			elapsed_time += seconds_per_chunk
 			
