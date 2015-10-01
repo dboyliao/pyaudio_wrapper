@@ -12,6 +12,7 @@ from pyaudio_wrapper.audio_data import WavFileAudioData
 wav_file = WavFileAudioData("path/to/your/wavfile")
 
 wav_file.raw_wav_data # Get the raw wav data in bytes.
+wav_file.duration     # duration of the audio file in seconds.
 wav_file.data         # A numpy array of the wav audio data.
 wav_file.play()       # Play out the audio.
 wav_file.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
@@ -27,8 +28,9 @@ recorder = Recorder() # Recording the sound from default microphone.
 with Microphone() as source:
     wav_audio = recorder.record(source)
 
-wav_audio.play() # play out the audio.
-wav_audio.data # an numpy array of this audio data
+wav_audio.play()             # play out the audio.
+wav_audio.data               # an numpy array of this audio data
+wav_audio.save('record.wav') # save the audio as a wav file.
 ```
 
 ## Analyse Audio Data
