@@ -129,6 +129,7 @@ class WavAudioData(AudioData):
 		"""
 		Raw WAV audio data.
 		"""
+		
 		return self.__get_raw_wav_data_from_byte(self.BYTE_DATA, self.CHANNELS)
 
 	@raw_wav_data.setter
@@ -139,6 +140,7 @@ class WavAudioData(AudioData):
 		"""
 		Convert original byte data into wav formated byte data.
 		"""
+
 		with io.BytesIO() as wav_file:
 			try:
 				wav_writer = wave.open(wav_file, "wb")
@@ -157,6 +159,7 @@ class WavAudioData(AudioData):
 		"""
 		`array`: a 1-D or a 2-D numpy array.
 		"""
+
 		if not array.shape[1] == 2:
 			array = array.T
 
@@ -173,6 +176,7 @@ class WavAudioData(AudioData):
 		`start` <float>: where to start playing the audio (in seconds).
 		`stop` <float>: where to stop playing the audio (in seconds).
 		"""
+
 		assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
 		assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
 

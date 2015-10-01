@@ -28,10 +28,6 @@ class AudioSource(object):
 		pass
 
 	@_abstract_property
-	def audio(self):
-		pass
-
-	@_abstract_property
 	def CHUNK_SIZE(self):
 		pass
 

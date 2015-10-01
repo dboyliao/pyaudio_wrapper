@@ -126,7 +126,6 @@ class Microphone(AudioSource):
 
 		self.output_stream.write(chunk_size)
 
-	## Reimplement all required properties.
 	@property
 	def audio(self):
 		return self.__audio
@@ -138,6 +137,7 @@ class Microphone(AudioSource):
 		else:
 			self.__audio = value
 
+	## Reimplement all required properties.
 	@property
 	def BIT_WIDTH(self):
 		return self.__bit_width
@@ -240,84 +240,3 @@ class Microphone(AudioSource):
 			raise RuntimeError("Can not modify `output_stream` once it was assigned.")
 		else:
 			self.__output_stream = value
-
-class WavFile(AudioSource):
-
-	def __init__(self, filename, output_device_index = None, output = False):
-		assert isinstance(filename, str), "`filename` must be a string."
-		assert isinstance(output_device_index, int) or output_device_index is None, "`output_device_index` must be either None or integer."
-
-		if not os.path.exists(os.path.abspath(filename)):
-			raise IOError("No such file.")
-
-		self.name = os.path.basename(filename)
-		self.fname = filename
-		self.device_index = output_device_index
-
-		self.__wav_file = None 
-		self.__audio = None
-		self.__output_stream = None
-		self.__output = output
-
-	def __enter__(self):
-		assert self.audio is None, "This audio source is already inside a context manager."
-
-		self.audio = pyaudio.PyAudio()
-		self.output_stream = pyaudio.open()		
-
-	def __exit__(self):
-		pass
-
-	@_under_audio_context
-	def read(self):
-		pass
-
-	@_under_audio_context
-	def write(self):
-		if not self.is_output:
-			raise RuntimeError("Can not write to non-output wav file.")
-		pass
-
-	@property
-	def device_info(self):
-		audio = pyaudio.PyAudio()
-		if self.device_index is None:
-			info = audio.get_default_output_device_info()
-		else:
-			info = audio.get_device_info_by_index(self.device_index)
-		audio.terminate()
-		return info
-
-	@property
-	def is_output(self):
-		return self.__output
-
-	@property
-	def audio(self):
-		return self.__audio
-
-	@audio.setter
-	def audio(self, value):
-		if not isinstance(value, pyaudio.PyAudio) or not value is None:
-			raise ValueError("audio can be of type {} or None only.".format(pyaudio.PyAudio))
-		self.__audio = value
-
-	@property
-	def CHUNK_SIZE(self):
-		pass
-
-	@property
-	def BIT_WIDTH(self):
-		pass
-
-	@property
-	def BYTE_WIDTH(self):
-		pass
-
-	@property
-	def SAMEPLE_RATE(self):
-		pass
-
-	@property
-	def CHANNELS(self):
-		pass
