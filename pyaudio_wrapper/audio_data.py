@@ -110,12 +110,48 @@ class AudioData(AudioDataABC):
 		"""
 		Duration in second.
 		"""
-		if self.CHANNELS == 2:
-			return len(self.data[0])/self.SAMPLE_RATE
-		return len(self.data)/self.SAMPLE_RATE
+		
+		return len(self)/self.SAMPLE_RATE
 
 	def __getitem__(self, i):
-		return self.data[:,i]
+		if self.CHANNELS == 1:
+			return self.data[i]
+		elif self.CHANNELS == 2:
+			return self.data[:,i]
+		else:
+			return None
+
+	def __len__(self):
+		if self.CHANNELS == 1:
+			return len(self.data)
+		elif self.CHANNELS == 2:
+			return len(self.data[0])
+		else:
+			return None
+
+	def __repr__(self):
+		return str(self)
+
+	def __str__(self):
+		dest_string = "data: {}\nbit width: {}\nsample rate: {}\nnumber of frames: {}\n"
+		return dest_string.format(repr(self.data), self.BIT_WIDTH, self.SAMPLE_RATE, len(self))
+
+	def __add__(self, other):
+		"""
+		Concatenate two audio data.
+		"""
+		pass
+
+	def __mul__(self, factor):
+
+		if not isinstance(factor, (int, float)):
+			return NotImplemented
+		pass
+
+	def __rmul__(self, factor):
+		if not isinstance(factor, (int, float)):
+			raise ValueError("Can only multiply audio data by number.")
+		pass
 
 
 class WavAudioData(AudioData):
@@ -160,7 +196,7 @@ class WavAudioData(AudioData):
 		`array`: a 1-D or a 2-D numpy array.
 		"""
 
-		if not array.shape[1] == 2:
+		if array.ndim == 2:
 			array = array.T
 
 		with io.BytesIO() as wav_file:
