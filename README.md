@@ -4,6 +4,19 @@
 
 # Basic Usage
 
+## Working with WAV Audio Data
+
+```{python}
+from pyaudio_wrapper.audio_data import WavFileAudioData
+
+wav_file = WavFileAudioData("path/to/your/wavfile")
+
+wav_file.raw_wav_data # Get the raw wav data in bytes.
+wav_file.data         # A numpy array of the wav audio data.
+wav_file.play()       # Play out the audio.
+wav_file.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
+```
+
 ## Recording Audio Data From Microphone
 
 ```{python}
