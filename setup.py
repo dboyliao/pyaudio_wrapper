@@ -24,7 +24,7 @@ setup(
     long_description = read("README.md"),
     license = __license__,
     keywords = "pyaudio wrapper",
-    url = "https://github.com/dboyliao/Python_Audio_Utilities/tree/micro_phone",
+    url = "https://github.com/dboyliao/pyaudio_wrapper",
     packages = find_packages(exclude = ['tests']),
     install_requires = ["pyaudio", 
                         "numpy", 

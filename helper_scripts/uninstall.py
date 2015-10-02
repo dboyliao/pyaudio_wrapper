@@ -1,8 +1,14 @@
-import sys, subprocess
+import sys, subprocess, os
 
-if sys.platform == 'darwin': # OS X
-    subprocess.call("/bin/bash ./helper_scripts/uninstall_linux.sh", shell = True)
-elif sys.platform == 'linux2': # linux
-    subprocess.run("/bin/bash ./helper_scripts/uninstall_linux.sh", shell = True)
-else: # Windows
-    print "I don't know how to run scipts on windows...."
+if os.path.exists(".temp_install_path.txt"):
+    print "Removing the package from your machine."
+    try:
+        subprocess.call("cat .temp_install_path.txt | xargs rm -rf", shell = True)
+        subprocess.call("rm .temp_install_path.txt", shell = True)
+        print 'Sucessfully uninstall pyaudio_wrapper...'
+        sys.exit(0)
+    except Exception as e:
+        print "Something goes wrong."
+        print e
+else:
+    print 'Package is not installed yet'

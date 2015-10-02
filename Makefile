@@ -16,7 +16,6 @@ install:
 	make clean
 
 uninstall:
-	pip uninstall -r requirements.txt
 	python helper_scripts/uninstall.py
 
 clean:
