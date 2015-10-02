@@ -58,3 +58,4 @@ make install      # Run `make uninstall` if you want to uninstall this package.
 - [24-bits Scipy](https://github.com/scipy/scipy/issues/1930)
 - [24-bits wave](http://stackoverflow.com/questions/16767248/how-do-i-write-a-24-bit-wav-file-in-python)
 - [IOError](http://stackoverflow.com/questions/28174540/ioerror-errno-input-overflowed-9981)
+- [setup.py](http://stackoverflow.com/questions/15440115/how-would-i-run-a-script-file-as-part-of-the-python-setup-py-install)
