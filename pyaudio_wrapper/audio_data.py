@@ -1,6 +1,6 @@
 __all__ = ["AudioData", "WavAudioData", "WavFileAudioData"]
 
-import io, wave, os
+import io, wave, os, audioop
 import numpy as np
 from scipy.io import wavfile
 import pyaudio
@@ -9,257 +9,281 @@ from ._audio_data_abc import AudioDataABC
 
 class AudioData(AudioDataABC):
 
-	def __init__(self, byte_data, sample_rate, bit_width, channels):
-		"""
-		byte_data: A byte string containing the raw data.
-		BIT_WIDTH: bit width in bytes.
-		"""
-		
-		try:
-			assert isinstance(bit_width, (int, long)) and bit_width > 0, \
-					"`bit_width` must be positive integer."
-			bit_width = pyaudio.get_sample_size(pyaudio.get_format_from_width(bit_width))
-		
-		except ValueError as e:
-			raise e
-		
-		assert isinstance(channels, int) and channels in [1, 2], \
-				"`channels` can be either 1(mono) or 2(stereo)."
-		assert channels in (1, 2), \
-				"`channels` can be either 1(mono) or 2(stereo) only."
-		
-		assert sample_rate > 0, "`sample_rate` must be positive."
+    def __init__(self, byte_data, sample_rate, bit_width, channels):
+        """
+        byte_data: A byte string containing the raw data.
+        BIT_WIDTH: bit width in bytes.
+        """
+        
+        try:
+            assert isinstance(bit_width, (int, long)) and bit_width > 0, \
+                    "`bit_width` must be positive integer."
+            bit_width = pyaudio.get_sample_size(pyaudio.get_format_from_width(bit_width))
+        
+        except ValueError as e:
+            raise e
+        
+        assert isinstance(channels, int) and channels in [1, 2], \
+                "`channels` can be either 1(mono) or 2(stereo)."
+        assert channels in (1, 2), \
+                "`channels` can be either 1(mono) or 2(stereo) only."
+        
+        assert sample_rate > 0, "`sample_rate` must be positive."
 
-		self.__bit_width = bit_width
-		self.__channels = channels
-		self.__sample_rate = sample_rate
-		self.__byte_data = byte_data # a byte string
+        self.__bit_width = bit_width
+        self.__channels = channels
+        self.__sample_rate = sample_rate
+        self.__byte_data = byte_data # a byte string
+        self.format = pyaudio.get_format_from_width(self.BIT_WIDTH)
 
-	@property
-	def BIT_WIDTH(self):
-		"""
-		bit width in bytes.
-		"""
-		return self.__bit_width
+    @property
+    def BIT_WIDTH(self):
+        """
+        bit width in bytes.
+        """
+        return self.__bit_width
 
-	@BIT_WIDTH.setter
-	def BIT_WIDTH(self, value):
-		raise RuntimeError("It is not allowed to modify this attribute.")
+    @BIT_WIDTH.setter
+    def BIT_WIDTH(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-	@property
-	def CHANNELS(self):
-		"""
-		number of channels.
-		"""
-		return self.__channels
+    @property
+    def CHANNELS(self):
+        """
+        number of channels.
+        """
+        return self.__channels
 
-	@CHANNELS.setter
-	def CHANNELS(self, value):
-		raise RuntimeError("It is not allowed to modify this attribute.")
+    @CHANNELS.setter
+    def CHANNELS(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-	@property
-	def SAMPLE_RATE(self):
-		"""
-		sample rate. (# of sample / sec)
-		"""
-		return self.__sample_rate
+    @property
+    def SAMPLE_RATE(self):
+        """
+        sample rate. (# of sample / sec)
+        """
+        return self.__sample_rate
 
-	@SAMPLE_RATE.setter
-	def SAMPLE_RATE(self, value):
-		raise RuntimeError("It is not allowed to modify this attribute.")
+    @SAMPLE_RATE.setter
+    def SAMPLE_RATE(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-	@property
-	def BYTE_DATA(self):
-		"""
-		raw byte data of frames.
-		"""
-		return self.__byte_data
+    @property
+    def BYTE_DATA(self):
+        """
+        raw byte data of frames.
+        """
+        return self.__byte_data
 
-	@BYTE_DATA.setter
-	def BYTE_DATA(self):
-		raise RuntimeError("It is not allowed to modify this attribute.")
+    @BYTE_DATA.setter
+    def BYTE_DATA(self):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-	@property
-	def data(self):
-		"""
-		Numeric presentation of the raw data.
-		"""
-		if self.BIT_WIDTH == 1:
-			data_array = np.fromstring(self.BYTE_DATA, dtype = np.int8)
-		elif self.BIT_WIDTH == 2:
-			data_array = np.fromstring(self.BYTE_DATA, dtype = np.int16)
-		elif self.BIT_WIDTH == 4:
-			data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
-		elif self.BIT_WIDTH == 3:
-			# Since numpy does not have 3 bytes data type, 
-			# using np.int32 instead. Be caution with 24-bits audio data.
-			data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
-		if self.CHANNELS == 1:
-			return data_array.T
-		elif self.CHANNELS == 2:
-			return data_array.reshape((len(data_array)/2, 2)).T
-		else:
-			return None
+    @property
+    def data(self):
+        """
+        Numeric presentation of the raw data.
+        """
+        if self.BIT_WIDTH == 1:
+            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int8)
+        elif self.BIT_WIDTH == 2:
+            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int16)
+        elif self.BIT_WIDTH == 4:
+            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
+        elif self.BIT_WIDTH == 3:
+            # Since numpy does not have 3 bytes data type, 
+            # using np.int32 instead. Be caution with 24-bits audio data.
+            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
+        if self.CHANNELS == 1:
+            return data_array.T
+        elif self.CHANNELS == 2:
+            return data_array.reshape((len(data_array)/2, 2)).T
+        else:
+            return None
 
-	@data.setter
-	def data(self, value):
-		raise RuntimeError("It is not allowed to modify this attribute.")
+    @data.setter
+    def data(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-	@property
-	def duration(self):
-		"""
-		Duration in second.
-		"""
-		
-		return len(self)/self.SAMPLE_RATE
+    @property
+    def duration(self):
+        """
+        Duration in second.
+        """
+        
+        return len(self)/self.SAMPLE_RATE
 
-	def __getitem__(self, i):
-		if self.CHANNELS == 1:
-			return self.data[i]
-		elif self.CHANNELS == 2:
-			return self.data[:,i]
-		else:
-			return None
+    def convert_sample_rate(self, out_rate):
+        new_byte_data, _ = audioop.ratecv(self.BYTE_DATA,
+                                       self.BIT_WIDTH,
+                                       self.CHANNELS,
+                                       self.SAMPLE_RATE,
+                                       out_rate,
+                                       None)
+        self.__sample_rate = out_rate
+        self.__byte_data = new_byte_data
 
-	def __len__(self):
-		if self.CHANNELS == 1:
-			return len(self.data)
-		elif self.CHANNELS == 2:
-			return len(self.data[0])
-		else:
-			return None
+    def __getitem__(self, i):
+        if self.CHANNELS == 1:
+            return self.data[i]
+        elif self.CHANNELS == 2:
+            return self.data[:,i]
+        else:
+            return None
 
-	def __repr__(self):
-		return str(self)
+    def __len__(self):
+        if self.CHANNELS == 1:
+            return len(self.data)
+        elif self.CHANNELS == 2:
+            return len(self.data[0])
+        else:
+            return None
 
-	def __str__(self):
-		dest_string = "data: {}\nbit width: {}\nsample rate: {}\nnumber of frames: {}\n"
-		return dest_string.format(repr(self.data), self.BIT_WIDTH, self.SAMPLE_RATE, len(self))
+    def __str__(self):
+        dest_string = "data: {}\nbit width: {}\nsample rate: {}\nnumber of frames: {}\n"
+        return dest_string.format(repr(self.data), self.BIT_WIDTH, self.SAMPLE_RATE, len(self))
 
-	def __add__(self, other):
-		"""
-		Concatenate two audio data.
-		"""
-		pass
+    def __add__(self, other):
+        """
+        Concatenate two audio data.
+        """
 
-	def __mul__(self, factor):
+        if not isinstance(other, AudioData):
+            raise ValueError("Can concatenate with object of type {} only.".format(AudioData))
+        if not self.BIT_WIDTH == other.BIT_WIDTH:
+            raise ValueError("Both audio data should have the same bit width.")
+        if not self.SAMPLE_RATE == other.SAMPLE_RATE:
+            raise ValueError("Both audio data should have the same sample rate.")
 
-		if not isinstance(factor, (int, float)):
-			return NotImplemented
-		pass
-
-	def __rmul__(self, factor):
-		if not isinstance(factor, (int, float)):
-			raise ValueError("Can only multiply audio data by number.")
-		pass
-
-
-class WavAudioData(AudioData):
-
-	def __init__(self, *args, **kwargs):
-		super(WavAudioData, self).__init__(*args, **kwargs)
-		self.format = pyaudio.get_format_from_width(self.BIT_WIDTH)
-
-	@property
-	def raw_wav_data(self):
-		"""
-		Raw WAV audio data.
-		"""
-		
-		return self.__get_raw_wav_data_from_byte(self.BYTE_DATA, self.CHANNELS)
-
-	@raw_wav_data.setter
-	def raw_wav_data(self, value):
-		raise RuntimeError("It is not allowed to modify this attribute.")
-
-	def __get_raw_wav_data_from_byte(self, byte_data, channels):
-		"""
-		Convert original byte data into wav formated byte data.
-		"""
-
-		with io.BytesIO() as wav_file:
-			try:
-				wav_writer = wave.open(wav_file, "wb")
-				wav_writer.setframerate(self.SAMPLE_RATE)
-				wav_writer.setsampwidth(self.BIT_WIDTH)
-				wav_writer.setnchannels(channels)
-				wav_writer.writeframes(byte_data)
-			except ValueError as e:
-				raise e
-			finally:
-				wav_writer.close()
-			wav_data = wav_file.getvalue()
-		return wav_data
-
-	def __get_raw_wav_data_from_array(self, array):
-		"""
-		`array`: a 1-D or a 2-D numpy array.
-		"""
-
-		if array.ndim == 2:
-			array = array.T
-
-		with io.BytesIO() as wav_file:
-			wavfile.write(wav_file, self.SAMPLE_RATE, array)
-			data = wav_file.getvalue()
-		return data
+        new_byte_data = b''.join([self.BYTE_DATA, other.BYTE_DATA])
+        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
 
 
-	def play(self, start = 0, stop = None):
-		"""
-		Play the audio data by default output device.
+    def __mul__(self, factor):
+        """
+        Implement audio_data * factor
+        """
 
-		`start` <float>: where to start playing the audio (in seconds).
-		`stop` <float>: where to stop playing the audio (in seconds).
-		"""
+        if not isinstance(factor, (int, float)):
+            return NotImplemented # passing the job to factor.__rmul__
+        new_byte_data = audioop.mul(self.BYTE_DATA, self.BIT_WIDTH, factor)
+        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
 
-		assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
-		assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
+    def __rmul__(self, factor):
+        """
+        Implement factor * audio_data
+        """
 
-		audio = pyaudio.PyAudio()
-		output_device_info = audio.get_default_output_device_info()
-		output_stream = audio.open(
-						output_device_index = output_device_info["index"],
-						output = True,
-						format = self.format,
-						rate = self.SAMPLE_RATE,
-						channels = self.CHANNELS)
-		if start == 0 and stop is None:
-			output_stream.write(self.raw_wav_data)
-		else:
-			start_index = int(round(self.SAMPLE_RATE * start))
-			if stop is not None:
-				stop_index = int(round(self.SAMPLE_RATE * stop))
-			else:
-				stop_index = stop
+        if not isinstance(factor, (int, float)):
+            raise ValueError("Can only multiply audio data by number.")
+        
+        return self * factor
 
-			data = self.__get_raw_wav_data_from_array(self[start_index:stop_index])
-			output_stream.write(data)
 
-		output_stream.stop_stream()
-		output_stream.close()
-		audio.terminate()
+class WavAudioData(AudioData):        
 
-	def save(self, fname, path = None):
-		"""
-		Save audio data as wav file.
+    @property
+    def raw_wav_data(self):
+        """
+        Raw WAV audio data.
+        """
+        
+        return self.__get_raw_wav_data_from_byte(self.BYTE_DATA)
 
-		Params:
-			fname (string): wav file name.
-			path (string): path to the directory where to save this wav file. It
-						   is by default the current working directory. 
-		"""
-		assert fname.endswith("wav"), "The file extension must be wav."
-		if path is None:
-			path = os.getcwd()
-		else:
-			path = os.path.abspath(path)
-		fname = os.path.abspath(fname)
+    @raw_wav_data.setter
+    def raw_wav_data(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
-		file_path = os.path.abspath(os.path.join(path, fname))
+    def __get_raw_wav_data_from_byte(self, byte_data):
+        """
+        Convert original byte data into wav formated byte data.
+        """
 
-		with open(file_path, "wb") as wav_file:
-			wav_file.write(self.raw_wav_data)
+        with io.BytesIO() as wav_file:
+            try:
+                wav_writer = wave.open(wav_file, "wb")
+                wav_writer.setframerate(self.SAMPLE_RATE)
+                wav_writer.setsampwidth(self.BIT_WIDTH)
+                wav_writer.setnchannels(self.CHANNELS)
+                wav_writer.writeframes(byte_data)
+            except ValueError as e:
+                raise e
+            finally:
+                wav_writer.close()
+            wav_data = wav_file.getvalue()
+        return wav_data
+
+    def __get_raw_wav_data_from_array(self, array):
+        """
+        `array`: a 1-D or a 2-D numpy array.
+        """
+
+        if array.ndim == 2:
+            array = array.T
+
+        with io.BytesIO() as wav_file:
+            wavfile.write(wav_file, self.SAMPLE_RATE, array)
+            data = wav_file.getvalue()
+        return data
+
+
+    def play(self, start = 0, stop = None):
+        """
+        Play the audio data by default output device.
+
+        `start` <float>: where to start playing the audio (in seconds).
+        `stop` <float>: where to stop playing the audio (in seconds).
+        """
+
+        assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
+        assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
+
+        audio = pyaudio.PyAudio()
+        output_device_info = audio.get_default_output_device_info()
+        output_stream = audio.open(
+                        output_device_index = output_device_info["index"],
+                        output = True,
+                        format = self.format,
+                        rate = self.SAMPLE_RATE,
+                        channels = self.CHANNELS)
+        if start == 0 and stop is None:
+            output_stream.write(self.raw_wav_data)
+        else:
+            start_index = int(round(self.SAMPLE_RATE * start))
+            if stop is not None:
+                stop_index = int(round(self.SAMPLE_RATE * stop))
+            else:
+                stop_index = stop
+
+            data = self.__get_raw_wav_data_from_array(self[start_index:stop_index])
+            output_stream.write(data)
+
+        output_stream.stop_stream()
+        output_stream.close()
+        audio.terminate()
+
+    def save(self, fname, path = None):
+        """
+        Save audio data as wav file.
+
+        Params:
+            fname <string>: wav file name.
+            path <string>: path to the directory where to save this wav file. It
+                           is by default the current working directory. 
+        """
+
+        assert fname.endswith("wav"), "The file extension must be wav."
+        if path is None:
+            path = os.getcwd()
+        else:
+            path = os.path.abspath(path)
+        fname = os.path.abspath(fname)
+
+        file_path = os.path.abspath(os.path.join(path, fname))
+
+        with open(file_path, "wb") as wav_file:
+            wav_file.write(self.raw_wav_data)
 
 class WavFileAudioData(WavAudioData):
 
@@ -276,3 +300,40 @@ class WavFileAudioData(WavAudioData):
                                                sample_rate = wav_file.getframerate(),
                                                bit_width = wav_file.getsampwidth(),
                                                channels = wav_file.getnchannels())
+        self.fname = os.path.abspath(fname)
+
+    def __add__(self, other):
+        """
+        Concatenate two audio data.
+        """
+
+        if not isinstance(other, AudioData):
+            raise ValueError("Can concatenate with object of type {} only.".format(AudioData))
+        if not self.BIT_WIDTH == other.BIT_WIDTH:
+            raise ValueError("Both audio data should have the same bit width.")
+        if not self.SAMPLE_RATE == other.SAMPLE_RATE:
+            raise ValueError("Both audio data should have the same sample rate.")
+
+        new_byte_data = b''.join([self.BYTE_DATA, other.BYTE_DATA])
+        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+
+
+    def __mul__(self, factor):
+        """
+        Implement audio_data * factor
+        """
+
+        if not isinstance(factor, (int, float)):
+            return NotImplemented # passing the job to factor.__rmul__
+        new_byte_data = audioop.mul(self.BYTE_DATA, self.BIT_WIDTH, factor)
+        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+
+    def __rmul__(self, factor):
+        """
+        Implement factor * audio_data
+        """
+        
+        if not isinstance(factor, (int, float)):
+            raise ValueError("Can only multiply audio data by number.")
+        
+        return self * factor
