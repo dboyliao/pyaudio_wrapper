@@ -10,11 +10,12 @@ develop-clean:
 	make clean
 
 install:
+	python helper_scripts/install.py
 	python setup.py install --record .temp_install_path.txt
 	make clean
 
 uninstall:
-	/bin/bash helper_scripts/uninstall.sh
+	python helper_scripts/uninstall.py
 
 clean:
 	rm -rf dist

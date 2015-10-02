@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 
-import os
+import os, sys
 from setuptools import setup, find_packages
 from pyaudio_wrapper import __authors__, __version__, __license__
 
+if sys.platform == "win32":
+    print "Sorry, I don't know how to install this package on windows."
+    print "Though pyaudio and portaudio are cross-platform."
+    print "Aborting install."
+
+    sys.exit(1)
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname), "r").read()
+
 
 setup(
     name = "pyaudio_wrapper",

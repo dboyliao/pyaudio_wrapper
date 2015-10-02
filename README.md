@@ -48,8 +48,14 @@ analysor.fft() # fast fourier transform.
 ```
 git clone https://github.com/dboyliao/pyaudio_wrapper.git
 cd pyaudio_wrapper
-make install      # Run `make uninstall` if you want to uninstall this package. 
+make install      # Run `make uninstall` if you want to uninstall this package.
 ```
+
+# Troble Shooting
+
+- The installation script works on my mac OS X 10.10.
+- I use `docker` to test this install script with ubuntu. It can successfully install `portaudio` and `pyaudio` but once you instantiate `pyaudio.PyAudio`, `ALSA` breaks.
+- I don't know how to install `portaudio` and `pyaudio` on Window. A little help here?
 
 # Reference
 
@@ -59,3 +65,4 @@ make install      # Run `make uninstall` if you want to uninstall this package.
 - [24-bits wave](http://stackoverflow.com/questions/16767248/how-do-i-write-a-24-bit-wav-file-in-python)
 - [IOError](http://stackoverflow.com/questions/28174540/ioerror-errno-input-overflowed-9981)
 - [setup.py](http://stackoverflow.com/questions/15440115/how-would-i-run-a-script-file-as-part-of-the-python-setup-py-install)
+- [pyaudio_mac](https://gist.github.com/jiaaro/9767512210a1d80a8a0d)
