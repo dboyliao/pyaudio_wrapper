@@ -18,7 +18,7 @@ wav_file.play()       # Play out the audio.
 wav_file.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
 ```
 
-## Recording Audio Data From Microphone
+## Recording Audio Data From Microphone (Still Buggy)
 
 ```{python}
 from pyaudio_wrapper import Recorder
@@ -33,7 +33,7 @@ wav_audio.data               # an numpy array of this audio data
 wav_audio.save('record.wav') # save the audio as a wav file.
 ```
 
-## Analyse Audio Data
+## Analyse Audio Data (Undergoing)
 
 ```{python}
 from pyaudio_wrapper.analyse import Analysor
