@@ -9,6 +9,7 @@ try:
 except ImportError: # pyaudio is not installed. Build portaudio and install pyaudio.
 
     if sys.platform == 'darwin': # OS X
+    
         # Install portaudio using brew.
         subprocess.call("brew update && brew install portaudio", shell = True)
         _, versions, _ = os.walk("/usr/local/Cellar/portaudio").next()

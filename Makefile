@@ -11,10 +11,12 @@ develop-clean:
 
 install:
 	python helper_scripts/install.py
+	pip install -r requirements.txt
 	python setup.py install --record .temp_install_path.txt
 	make clean
 
 uninstall:
+	pip uninstall -r requirements.txt
 	python helper_scripts/uninstall.py
 
 clean:
