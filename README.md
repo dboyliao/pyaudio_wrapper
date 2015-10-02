@@ -54,7 +54,8 @@ make install      # Run `make uninstall` if you want to uninstall this package.
 # Troble Shooting
 
 - The installation script works on my mac OS X 10.10.
-- I use `docker` to test this install script with ubuntu. It can successfully install `portaudio` and `pyaudio` but once you instantiate `pyaudio.PyAudio`, `ALSA` breaks.
+- If you can not successfully install this package on OS X 10.10, you can try to re-install `python` with `brew`. That is, run `brew install python`.
+- I use `docker` to test installation scripts with ubuntu. It can successfully install `portaudio` and `pyaudio` but once you instantiate `pyaudio.PyAudio`, `ALSA` breaks. I don't know why by now....
 - I don't know how to install `portaudio` and `pyaudio` on Window. A little help here?
 
 # Reference
