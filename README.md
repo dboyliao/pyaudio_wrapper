@@ -9,14 +9,37 @@
 ```{python}
 from pyaudio_wrapper.audio_data import WavFileAudioData
 
-wav_file = WavFileAudioData("path/to/your/wavfile")
+wav_audio = WavFileAudioData("tests/data/my_voice.wav")
 
-wav_file.raw_wav_data # Get the raw wav data in bytes.
-wav_file.duration     # duration of the audio file in seconds.
-wav_file.data         # A numpy array of the wav audio data.
-wav_file.play()       # Play out the audio.
-wav_file.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
+wav_audio.raw_wav_data # Get the raw wav data in bytes.
+wav_audio.duration     # duration of the audio file in seconds.
+wav_audio.data         # A numpy array of the wav audio data.
+wav_audio.play()       # Play out the audio.
+wav_audio.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
 ```
+
+## Analyse Audio Data
+
+```{python}
+from pyaudio_wrapper.analyse import Analysor
+
+analysor = Analysor(wav_audio)
+analysor.plot() # plot the audio data.
+```
+![analysor_plot](img/analysor_plot.png)
+![plot_stereo](img/plot_stereo.png)
+
+```{python}
+coef = analysor.fft() # fast fourier transform.
+```
+![fft](img/fft.png)
+
+```{python}
+# Or you can plot the spectrum.
+coef = analysor.fft(plot = True)
+```
+![fft_plot](img/fft_plot.png)
+![fft_plot_stereo](img/fft_plot_stereo.png)
 
 ## Recording Audio Data From Microphone (Still Buggy)
 
@@ -31,16 +54,6 @@ with Microphone() as source:
 wav_audio.play()             # play out the audio.
 wav_audio.data               # an numpy array of this audio data
 wav_audio.save('record.wav') # save the audio as a wav file.
-```
-
-## Analyse Audio Data (Undergoing)
-
-```{python}
-from pyaudio_wrapper.analyse import Analysor
-
-analysor = Analysor(wav_audio)
-analysor.plot() # plot the audio data.
-analysor.fft() # fast fourier transform.
 ```
 
 # Installation
@@ -65,5 +78,11 @@ make install      # Run `make uninstall` if you want to uninstall this package.
 - [24-bits Scipy](https://github.com/scipy/scipy/issues/1930)
 - [24-bits wave](http://stackoverflow.com/questions/16767248/how-do-i-write-a-24-bit-wav-file-in-python)
 - [IOError](http://stackoverflow.com/questions/28174540/ioerror-errno-input-overflowed-9981)
+- [plot](http://stackoverflow.com/questions/18625085/how-to-plot-a-wav-file), [fft](http://stackoverflow.com/questions/23377665/python-scipy-fft-wav-files), [fft2](http://docs.scipy.org/doc/scipy-dev/reference/tutorial/fftpack.html)
 - [setup.py](http://stackoverflow.com/questions/15440115/how-would-i-run-a-script-file-as-part-of-the-python-setup-py-install)
 - [pyaudio_mac](https://gist.github.com/jiaaro/9767512210a1d80a8a0d)
+- [pydub](https://github.com/jiaaro/pydub)
+- [avconv](http://www.tecmint.com/avconv-command-examples/)
+- [avconv install](http://superuser.com/questions/568464/how-to-install-libav-avconv-on-osx)
+- [unknown format](http://stackoverflow.com/questions/17297048/opening-a-wave-file-in-python-unknown-format-49-whats-going-wrong)
+- [testing wav files](http://download.wavetlan.com/SVV/Media/HTTP/http-wav.htm)

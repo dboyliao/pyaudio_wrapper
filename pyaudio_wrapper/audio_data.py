@@ -9,19 +9,15 @@ from ._audio_data_abc import AudioDataABC
 
 class AudioData(AudioDataABC):
 
-    def __init__(self, byte_data, sample_rate, bit_width, channels):
+    def __init__(self, byte_data, sample_rate, bit_width, channels, dtype):
         """
         byte_data: A byte string containing the raw data.
         BIT_WIDTH: bit width in bytes.
         """
         
-        try:
-            assert isinstance(bit_width, (int, long)) and bit_width > 0, \
-                    "`bit_width` must be positive integer."
-            bit_width = pyaudio.get_sample_size(pyaudio.get_format_from_width(bit_width))
-        
-        except ValueError as e:
-            raise e
+        assert isinstance(bit_width, (int, long)) and bit_width > 0, \
+                "`bit_width` must be positive integer."
+        bit_width = pyaudio.get_sample_size(pyaudio.get_format_from_width(bit_width))
         
         assert isinstance(channels, int) and channels in [1, 2], \
                 "`channels` can be either 1(mono) or 2(stereo)."
@@ -34,7 +30,33 @@ class AudioData(AudioDataABC):
         self.__channels = channels
         self.__sample_rate = sample_rate
         self.__byte_data = byte_data # a byte string
+
+        if not self._validate_dtype(dtype):
+            raise ValueError("`dtype` is not compatible with the `bit_width`.")
+
+        self.__dtype = dtype
         self.format = pyaudio.get_format_from_width(self.BIT_WIDTH)
+
+    def _validate_dtype(self, dtype):
+
+        if self.BIT_WIDTH == 1 and dtype in [np.int8, np.uint8]:
+            return True
+        elif self.BIT_WIDTH == 2 and dtype in [np.int16, np.uint16]:
+            return True
+        elif self.BIT_WIDTH == 3 and dtype in [np.int32, np.uint32]:
+            return True
+        elif self.BIT_WIDTH == 4 and dtype in [np.int32, np.uint32]:
+            return True
+
+        return False
+
+    @property
+    def dtype(self):
+        return self.__dtype
+
+    @dtype.setter
+    def dtype(self, value):
+        raise RuntimeError("It is not allowed to modify this attribute.")
 
     @property
     def BIT_WIDTH(self):
@@ -86,15 +108,15 @@ class AudioData(AudioDataABC):
         Numeric presentation of the raw data.
         """
         if self.BIT_WIDTH == 1:
-            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int8)
+            data_array = np.fromstring(self.BYTE_DATA, dtype = self.dtype)
         elif self.BIT_WIDTH == 2:
-            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int16)
+            data_array = np.fromstring(self.BYTE_DATA, dtype = self.dtype)
         elif self.BIT_WIDTH == 4:
-            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
+            data_array = np.fromstring(self.BYTE_DATA, dtype = self.dtype)
         elif self.BIT_WIDTH == 3:
             # Since numpy does not have 3 bytes data type, 
             # using np.int32 instead. Be caution with 24-bits audio data.
-            data_array = np.fromstring(self.BYTE_DATA, dtype = np.int32)
+            data_array = np.fromstring(self.BYTE_DATA, dtype = self.dtype)
         if self.CHANNELS == 1:
             return data_array.T
         elif self.CHANNELS == 2:
@@ -157,7 +179,7 @@ class AudioData(AudioDataABC):
             raise ValueError("Both audio data should have the same sample rate.")
 
         new_byte_data = b''.join([self.BYTE_DATA, other.BYTE_DATA])
-        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS, self.dtype)
 
 
     def __mul__(self, factor):
@@ -168,7 +190,7 @@ class AudioData(AudioDataABC):
         if not isinstance(factor, (int, float)):
             return NotImplemented # passing the job to factor.__rmul__
         new_byte_data = audioop.mul(self.BYTE_DATA, self.BIT_WIDTH, factor)
-        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+        return type(self)(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS, self.dtype)
 
     def __rmul__(self, factor):
         """
@@ -288,19 +310,29 @@ class WavAudioData(AudioData):
 class WavFileAudioData(WavAudioData):
 
     def __init__(self, fname):
-        wav_file = wave.open(fname, "rb")
-        data_buffer = wav_file.readframes(1024)
-        data = []
-        while len(data_buffer) > 0:
-            data.append(data_buffer)
-            data_buffer = wav_file.readframes(1024)
+
+        fname = os.path.abspath(fname)
+        sample_rate, data = wavfile.read(fname)
+        if data.ndim == 2:
+            channels = 2
         else:
-            byte_data = b''.join(data)
+            channels = 1
+
+        if data.dtype in [np.int8, np.uint8]:
+            bit_width = 1
+        elif data.dtype in [np.int16, np.uint16]:
+            bit_width = 2
+        else:
+            bit_width = 4
+        
+        byte_data = data.tostring()
+        
         super(WavFileAudioData, self).__init__(byte_data = byte_data, 
-                                               sample_rate = wav_file.getframerate(),
-                                               bit_width = wav_file.getsampwidth(),
-                                               channels = wav_file.getnchannels())
-        self.fname = os.path.abspath(fname)
+                                               sample_rate = sample_rate,
+                                               bit_width = bit_width,
+                                               channels = channels,
+                                               dtype = data.dtype)
+        self.fname = fname
 
     def __add__(self, other):
         """
@@ -315,7 +347,7 @@ class WavFileAudioData(WavAudioData):
             raise ValueError("Both audio data should have the same sample rate.")
 
         new_byte_data = b''.join([self.BYTE_DATA, other.BYTE_DATA])
-        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS, self.dtype)
 
 
     def __mul__(self, factor):
@@ -326,7 +358,8 @@ class WavFileAudioData(WavAudioData):
         if not isinstance(factor, (int, float)):
             return NotImplemented # passing the job to factor.__rmul__
         new_byte_data = audioop.mul(self.BYTE_DATA, self.BIT_WIDTH, factor)
-        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS)
+        
+        return WavAudioData(new_byte_data, self.SAMPLE_RATE, self.BIT_WIDTH, self.CHANNELS, self.dtype)
 
     def __rmul__(self, factor):
         """
