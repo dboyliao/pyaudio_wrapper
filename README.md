@@ -27,6 +27,9 @@ analysor = Analysor(wav_audio)
 analysor.plot() # plot the audio data.
 ```
 ![analysor_plot](img/analysor_plot.png)
+
+
+If the audio is stereo, you will see something like this:
 ![plot_stereo](img/plot_stereo.png)
 
 ```{python}
@@ -39,6 +42,8 @@ coef = analysor.fft() # fast fourier transform.
 coef = analysor.fft(plot = True)
 ```
 ![fft_plot](img/fft_plot.png)
+
+If the audio is stereo, you will see something like this:
 ![fft_plot_stereo](img/fft_plot_stereo.png)
 
 ## Recording Audio Data From Microphone (Still Buggy)
