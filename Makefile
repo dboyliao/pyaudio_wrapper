@@ -10,15 +10,8 @@ develop-clean:
 	make clean
 
 install:
-	python helper_scripts/install.py
-	pip install -r requirements.txt
-	python setup.py install --record .temp_install_path.txt
-	make clean
+	python setup.py install
 
 uninstall:
-	python helper_scripts/uninstall.py
+	python setup.py uninstall
 
-clean:
-	rm -rf dist
-	rm -rf pyaudio_wrapper.egg-info
-	rm -rf build
