@@ -1,4 +1,6 @@
 __all__ = ["_abstractmethod", "_abstract_property", "_under_audio_context"]
+__doc__ = """Utilities Module. All helper functions are defined here.
+"""
 
 from abc import abstractmethod
 from functools import wraps

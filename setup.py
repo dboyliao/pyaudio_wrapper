@@ -5,17 +5,25 @@ from setuptools import setup, find_packages, Command
 from setuptools.command.install import install
 from pyaudio_wrapper import __authors__, __version__, __license__
 
+
 if sys.platform == "win32":
     print "Sorry, I don't know how to install this package on windows."
     print "Though pyaudio and portaudio are cross-platform."
-    print "Aborting install."
+    print "Abort installation."
 
     sys.exit(1)
 
 def read(fname):
+    """
+    Read the README.md as long description.
+    """
+
     return open(os.path.join(os.path.dirname(__file__), fname), "r").read()
 
 class install_cmd(install):
+    """
+    python setup.py install Hack.
+    """
 
     def run(self):
         print "[Info] Installing pyaudio_wrapper."
@@ -60,6 +68,9 @@ class install_cmd(install):
         print "Installation sucess."
 
 class uninstall_cmd(Command):
+    """
+    python setup.py uninstall Hack.
+    """
 
     description = "Uninstalling pyaudio_wrapper package."
     user_options = [('force', 'f', 'Runing force mode.')]

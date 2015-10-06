@@ -1,9 +1,14 @@
-__all__ = ["AudioSource"]
+__all__ = ["AudioSourceABC"]
 
 from abc import ABCMeta
 from ._utils import _abstractmethod, _abstract_property
 
-class AudioSource(object):
+class AudioSourceABC(object):
+    """
+    AudioSource Abstract Base Class.
+
+    This class is for definding the spec of AudioSource class.
+    """
 
     __metaclass__ = ABCMeta
 

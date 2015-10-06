@@ -4,6 +4,12 @@ from abc import ABCMeta
 from ._utils import _abstract_property
 
 class AudioDataABC(object):
+    """
+    AudioData Abstract Base Class.
+
+    This class is for definding the spec of AudioData class.
+    """
+    
     __metaclass__ = ABCMeta
 
     @_abstract_property

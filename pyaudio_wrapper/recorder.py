@@ -11,7 +11,7 @@ from scipy.io import wavfile
 
 # submodules
 from .audio_data import AudioData, WavAudioData
-from ._source_abc import AudioSource
+from ._source_abc import AudioSourceABC
 from ._recorder_abc import AbstractRecorder
 
 class Recorder(AbstractRecorder):

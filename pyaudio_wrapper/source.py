@@ -2,7 +2,7 @@
 The `source` submodule: a module which defines all available audio source.
 """
 
-__all__ = ["Microphone"]
+__all__ = ["Microphone", "AudioSource"]
 
 ## Import standard libraries.
 from functools import wraps
@@ -13,60 +13,38 @@ from scipy.io import wavfile
 import pyaudio
 
 ## Import submodules.
-from ._source_abc import AudioSource
+from ._source_abc import AudioSourceABC
 from _utils import _under_audio_context
 from .audio_data import AudioData, WavAudioData
 from .exceptions import DeviceTypeError
 
-class Microphone(AudioSource):
+class AudioSource(AudioSourceABC):
 
     ## Reimplement all required abstract methods
-    def __init__(self, device_index = None, sample_rate = None, bit_width = None, chunk_size = 8092, channels = 1):
-        
-        ### Checking the parameters ###
+    def __init__(self, device_index, sample_rate, bit_width, chunk_size = 8092, channels = 1):
+
         audio = pyaudio.PyAudio()
-        if device_index is not None:
-            assert isinstance(device_index, int), "Device index must be None or an integer"
-            # ensure device index is in range
-            # obtain device count
-            count = audio.get_device_count()
-            assert 0 <= device_index < count, "`device_index` out of range: {} out of {}".format(device_index, count)
-            self.device_index = device_index
-            if self.device_info["maxInputChannels"] > 0:
-                self.device_type = "input"
-            else:
-                self.device_type = "output"
-        else:
-            # if device_index is None, using default input index.
-            self.device_index = audio.get_default_input_device_info()["index"]
-            self.device_type = "input"
+        ## Checking the device_index is valid or not.
+        assert isinstance(device_index, (int, long)), "Device index must be an integer."
+        device_count = audio.get_device_count()
+        assert 0 <= device_index < device_count, "`device_index` out of range: {} out of {}".format(device_index, count)
         audio.terminate()
+        self.__device_index = device_index
 
-        assert isinstance(chunk_size, int) and chunk_size > 0, "`chunck_size` must be positive."
+        self.__format = pyaudio.get_format_from_width(bit_width)
+        self.__bit_width = pyaudio.get_sample_size(self.FORMAT)
 
-        # 16-bit bit width. 
-        # Note that the BYTE_WIDTH property is the size of each sample in term of bytes
-        # which will be look up according to BIT_WIDTH property
-        if bit_width is None:
-            self.__format = pyaudio.paInt16
-        else:
-            self.__format = pyaudio.get_format_from_width(bit_width)
-
-        self.__bit_width = pyaudio.get_sample_size(self.__format)
+        assert isinstance(sample_rate, (int, long)), "`sample_rate` must be integer."
         
-        # sampling rate in Hertz
-        if sample_rate is not None:
-            assert isinstance(sample_rate, int), "`sample_rate` must be integer."
-            self.__sample_rate = sample_rate
-        else:
-            self.__sample_rate = int(self.device_info["defaultSampleRate"])
+        max_sample_rate = self.device_info["defaultSampleRate"]
+        assert 0 < sample_rate <= max_sample_rate, "`sample_rate` out of range: {} out of {}".format(sample_rate, max_sample_rate)
+        self.__sample_rate = sample_rate
 
-        # 1 for mono audio, 2 for stereor audio.
-        assert channels in (1, 2), "`channels` can be either 1 or 2."
-        self.__channels = channels 
+        assert isinstance(chunk_size, (int, long)), "`chunk_size` must be integer."
+        self.__chunk_size = chunk_size
 
-        # number of frames stored in each buffer
-        self.__chunk_size = chunk_size 
+        assert channels in [1, 2], '`channels` can be either 1 or 2. 1 for mono audio, 2 for stereo.' 
+        self.__channels = channels
 
         # audio resource and streams.
         self.__audio = None
@@ -74,15 +52,25 @@ class Microphone(AudioSource):
         self.__output_stream = None
 
     @property
-    def device_info(self):
-        """
-        Private helper function: get related parameters of default device.
-        """
+    def device_index(self):
+        return self.__device_index
 
+
+    @property
+    def device_info(self):
         audio = pyaudio.PyAudio()
-        device_info = audio.get_device_info_by_index(self.device_index)
+        info = audio.get_device_info_by_index(self.device_index)
         audio.terminate()
-        return device_info
+        return info
+
+    @property
+    def device_type(self):
+        if self.device_info["maxInputChannels"] and self.device_info["maxOutputChannels"]:
+            return 'both'
+        elif self.device_info["maxInputChannels"]:
+            return 'input'
+        elif self.device_info["maxOutputChannels"]:
+            return 'output'
 
     def __enter__(self):
         self.start()
@@ -103,6 +91,12 @@ class Microphone(AudioSource):
         elif self.device_type == "input":
             self.input_stream.stop_stream()
             self.input_stream.close()
+        elif self.device_type == 'both':
+            self.input_stream.stop_stream()
+            self.input_stream.close()
+            self.output_stream.stop_stream()
+            self.output_stream.close()
+
         self.audio.terminate()
         self.audio = None
 
@@ -144,10 +138,7 @@ class Microphone(AudioSource):
 
     @BIT_WIDTH.setter
     def BIT_WIDTH(self, value):
-        if not self.__bit_width is None:
-            raise RuntimeError("It is not allowed to modify the `BIT_WIDTH`.")
-        else:
-            self.__bit_width = value
+        raise RuntimeError("It is not allowed to modify the `BIT_WIDTH`.")
 
     @property
     def SAMPLE_RATE(self):
@@ -155,33 +146,24 @@ class Microphone(AudioSource):
 
     @SAMPLE_RATE.setter
     def SAMPLE_RATE(self, value):
-        if isinstance(value, int):
-            raise ValueError("The sample")
-        else:
-            self.__sample_rate = value
-
+        raise RuntimeError("It is not allowed to modify the `SAMPLE_RATE`.")
+        
     @property
     def CHANNELS(self):
         return self.__channels
 
     @CHANNELS.setter
     def CHANNELS(self, value):
-        if not self.__channels is None:
-            raise RuntimeError("It is not allowd to modifyt the `CHANNELS`.")
-        else:
-            self.__channels = value
-
+        raise RuntimeError("It is not allowd to modifyt the `CHANNELS`.")
+        
     @property
     def CHUNK_SIZE(self):
         return self.__chunk_size
 
     @CHUNK_SIZE.setter
     def CHUNK_SIZE(self, value):
-        if not self.__chunk_size is None:
-            raise RuntimeError("It is not allowd to modifyt the `CHUNK_SIZE`.")
-        else:
-            self.__chunk_size = value
-
+        raise RuntimeError("It is not allowd to modifyt the `CHUNK_SIZE`.")
+        
     @property
     def FORMAT(self):
         return self.__format
@@ -240,3 +222,22 @@ class Microphone(AudioSource):
             raise RuntimeError("Can not modify `output_stream` once it was assigned.")
         else:
             self.__output_stream = value
+
+
+class Microphone(AudioSource):
+
+    
+    def __init__(self, bit_width = 2L, chunk_size = 8092, channels = 1):
+        
+        audio = pyaudio.PyAudio()
+        info = audio.get_default_input_device_info()
+        audio.terminate()
+        
+        device_index = int(info["index"])
+        sample_rate = int(info["defaultSampleRate"])
+
+        super(Microphone, self).__init__(device_index = device_index,
+                                         sample_rate = sample_rate,
+                                         bit_width = bit_width,
+                                         chunk_size = chunk_size,
+                                         channels = channels)

@@ -8,6 +8,8 @@ from .audio_data import AudioData
 
 class AudioAnalysor(object):
 
+    __doc__ = "Audio Analysor: object to analyse the audio data such as plot, fft,...etc."
+
     def __init__(self, audio_data):
 
         self.set_audio_data(audio_data)
@@ -64,6 +66,7 @@ class AudioAnalysor(object):
             
 
     def plot(self, by_sec = True, color = 'br'):
+
         if self.audio_data.CHANNELS == 1: # mono audio
             if by_sec:
                 x = np.linspace(0, len(self.audio_data.data)/self.audio_data.SAMPLE_RATE, num = len(self.audio_data.data))
@@ -91,5 +94,22 @@ class AudioAnalysor(object):
         plt.tight_layout()
         plt.show()
 
-    def denoice(self, audio_data):
+    def denoise(self, method = 'energy', **kwargs):
+        """
+        Denoise the audio data.
+
+        `params`:
+            `method` <string>: available values --> 'energy', (to be added).
+
+        `return`:
+            audio_data_denoised <AudioData>: An AudioData instance of denoised audio.
+        """
+        
+        if method == 'energy':
+            self.set_audio_data(self.__denoise_by_energy(**kwargs))
+        else:
+            pass
+
+    def __denoise_by_energy(threshold = None):
         pass
+
