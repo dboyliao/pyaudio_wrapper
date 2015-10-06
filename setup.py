@@ -22,6 +22,23 @@ def read(fname):
 
     return open(os.path.join(os.path.dirname(__file__), fname), "r").read()
 
+def find_package_path(package_name):
+
+    try:
+        cmd = "cd .. && python -c 'import {0};print {0}.__path__[0]'".format(package_name)
+        status = subprocess.call(cmd, stdout = open('/dev/null'), stderr = open("/dev/null"), shell = True)
+        package_path = subprocess.check_output(cmd, stderr = open("/dev/null"), shell = True).strip("\n")
+        if status != 0:
+            return None
+        else:
+            if 'egg' in package_path:
+                return os.path.dirname(package_path)
+            else:
+                return package_path
+    except subprocess.CalledProcessError:
+        return None
+
+
 class install_cmd(install):
     """
     python setup.py install Hack.
@@ -75,7 +92,7 @@ class develop_cmd(develop):
         develop.run(self)
 
         if self.uninstall:
-            package_path = self.__find_package_path("pyaudio_wrapper")
+            package_path = find_package_path("pyaudio_wrapper")
             if package_path is not None:
                 print "[Info] Detecting import hook in easy-install.pth"
                 print "[Info] Clean import hook."
@@ -97,23 +114,6 @@ class develop_cmd(develop):
                     print e
                     print "[Error] Cannot clean the import hook."
                     sys.exit(1)
-
-    def __find_package_path(self, package_name):
-
-        try:
-            cmd = "cd .. && python -c 'import {0};print {0}.__path__[0]'".format(package_name)
-            status = subprocess.call(cmd, stdout = open('/dev/null'), stderr = open("/dev/null"), shell = True)
-            package_path = subprocess.check_output(cmd, stderr = open("/dev/null"), shell = True).strip("\n")
-            if status != 0:
-                return None
-            else:
-                if 'egg' in package_path:
-                    return os.path.dirname(package_path)
-                else:
-                    return package_path
-        except subprocess.CalledProcessError:
-            return None
-
 
 
 class uninstall_cmd(Command):
@@ -138,10 +138,16 @@ class uninstall_cmd(Command):
             print '[Info] Uninstalling pyaudio_wrapper...'
             print '[Info] Looking for package directory...'
         
-        package_path = self.__find_package_path("pyaudio_wrapper")
+        package_path = find_package_path("pyaudio_wrapper")
         if package_path is not None:
             if self.verbose:
-                print '[Info] Package path found: {}'.format(package_path)
+                print '[Info] Package path found: \033[1;36m{}\033[0m'.format(package_path)
+                confirm = raw_input("Are you sure to remove this directory ([y]/n)? ")
+                confirm = 'yes' if confirm.lower() in ['yes', 'y', ''] else 'no'
+
+                if not confirm == 'yes':
+                    print "[Info] Abort uninstallation."
+                    sys.exit(1)
 
                 if force:
                     print "[Info] Running command: rm -rf {}".format(package_path)
@@ -159,23 +165,6 @@ class uninstall_cmd(Command):
             print "[Error] pyaudio_wrapper has not been installed yet."
             print "[Info] Abort uninstalling process"
             sys.exit(1)
-
-    def __find_package_path(self, package_name):
-
-        try:
-            cmd = "cd .. && python -c 'import {0};print {0}.__path__[0]'".format(package_name)
-            status = subprocess.call(cmd, stdout = open('/dev/null'), stderr = open("/dev/null"), shell = True)
-            package_path = subprocess.check_output(cmd, stderr = open("/dev/null"), shell = True).strip("\n")
-            if status != 0:
-                return None
-            else:
-                if 'egg' in package_path:
-                    return os.path.dirname(package_path)
-                else:
-                    return package_path
-        except subprocess.CalledProcessError:
-            return None
-
 
 
 setup(
