@@ -7,7 +7,6 @@ develop:
 
 develop-clean:
 	python setup.py develop --uninstall
-	make clean
 
 install:
 	python setup.py install
@@ -15,3 +14,7 @@ install:
 uninstall:
 	python setup.py uninstall
 
+clean:
+	rm -rf pyaudio_wrapper.egg-info
+	rm -rf dist
+	rm -rf build

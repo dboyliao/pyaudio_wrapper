@@ -3,6 +3,8 @@
 import os, sys, subprocess
 from setuptools import setup, find_packages, Command
 from setuptools.command.install import install
+from setuptools.command.develop import develop
+import easy_install
 from pyaudio_wrapper import __authors__, __version__, __license__
 
 
@@ -63,9 +65,56 @@ class install_cmd(install):
         print '[Info] Cleaning up temp files.'
         subprocess.call('rm -rf dist', shell = True)
         subprocess.call('rm -rf pyaudio_wrapper.egg-info', shell = True)
-        subprocess.call('rm -rf rm -rf build', shell = True)
+        subprocess.call('rm -rf build', shell = True)
 
         print "Installation sucess."
+
+class develop_cmd(develop):
+
+    def run(self):
+        develop.run(self)
+
+        if self.uninstall:
+            package_path = self.__find_package_path("pyaudio_wrapper")
+            if package_path is not None:
+                print "[Info] Detecting import hook in easy-install.pth"
+                print "[Info] Clean import hook."
+
+                pth = os.path.join(os.path.dirname(easy_install.__file__), 'easy-install.pth')
+
+                try:
+                    pth_file = open(pth, "r")
+                    lines = pth_file.readlines()
+                    pth_file.close()
+                    to_write = []
+                    for line in lines:
+                        if not 'pyaudio_wrapper' in line:
+                            to_write.append(line)
+                    pth_file = open(pth, "w")
+                    pth_file.write(''.join(to_write))
+                    pth_file.close()
+                except Exception as e:
+                    print e
+                    print "[Error] Cannot clean the import hook."
+                    sys.exit(1)
+
+    def __find_package_path(self, package_name):
+
+        try:
+            cmd = "cd .. && python -c 'import {0};print {0}.__path__[0]'".format(package_name)
+            status = subprocess.call(cmd, stdout = open('/dev/null'), stderr = open("/dev/null"), shell = True)
+            package_path = subprocess.check_output(cmd, stderr = open("/dev/null"), shell = True).strip("\n")
+            if status != 0:
+                return None
+            else:
+                if 'egg' in package_path:
+                    return os.path.dirname(package_path)
+                else:
+                    return package_path
+        except subprocess.CalledProcessError:
+            return None
+
+
 
 class uninstall_cmd(Command):
     """
@@ -145,5 +194,6 @@ setup(
                         "scipy",
                         "matplotlib"],
     cmdclass = {'uninstall': uninstall_cmd,
-                'install': install_cmd}
+                'install': install_cmd,
+                'develop': develop_cmd}
 )
