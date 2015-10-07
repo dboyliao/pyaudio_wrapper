@@ -46,6 +46,17 @@ coef = analysor.fft(plot = True)
 If the audio is stereo, you will see something like this:
 ![fft_plot_stereo](img/fft_plot_stereo.png)
 
+## Fun Time
+
+```{python}
+from pyaudio_wrapper.notes import *
+
+(C + D).play()     # play Do and Re for 1 sec, repsectively
+bee_song.play()    # One well-known song. : )
+
+# My goal is to use this package to compose music in a simple way. XDD
+```
+
 ## Recording Audio Data From Microphone (Still Buggy)
 
 ```{python}

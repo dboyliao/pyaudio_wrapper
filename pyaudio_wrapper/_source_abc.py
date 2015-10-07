@@ -28,10 +28,6 @@ class AudioSourceABC(object):
     def read(self):
         pass
 
-    @_abstractmethod
-    def write(self):
-        pass
-
     @_abstract_property
     def CHUNK_SIZE(self):
         pass

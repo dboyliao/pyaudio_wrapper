@@ -31,6 +31,9 @@ class AudioSource(AudioSourceABC):
         audio.terminate()
         self.__device_index = device_index
 
+        if not self.device_info["maxInputChannels"] > 0:
+            raise DeviceTypeError("Can not source from a non-input device.")
+
         self.__format = pyaudio.get_format_from_width(bit_width)
         self.__bit_width = pyaudio.get_sample_size(self.FORMAT)
 
@@ -63,15 +66,6 @@ class AudioSource(AudioSourceABC):
         audio.terminate()
         return info
 
-    @property
-    def device_type(self):
-        if self.device_info["maxInputChannels"] and self.device_info["maxOutputChannels"]:
-            return 'both'
-        elif self.device_info["maxInputChannels"]:
-            return 'input'
-        elif self.device_info["maxOutputChannels"]:
-            return 'output'
-
     def __enter__(self):
         self.start()
         return self
@@ -85,26 +79,15 @@ class AudioSource(AudioSourceABC):
 
     @_under_audio_context
     def close(self):
-        if self.device_type == "output":
-            self.output_stream.stop_stream()
-            self.output_stream.close()
-        elif self.device_type == "input":
-            self.input_stream.stop_stream()
-            self.input_stream.close()
-        elif self.device_type == 'both':
-            self.input_stream.stop_stream()
-            self.input_stream.close()
-            self.output_stream.stop_stream()
-            self.output_stream.close()
+        
+        self.input_stream.stop_stream()
+        self.input_stream.close()
 
         self.audio.terminate()
         self.audio = None
 
     @_under_audio_context
     def read(self, chunk_size = None):
-        
-        if not self.device_type == "input":
-            raise DeviceTypeError("Can not read from a non-input device.")
 
         if chunk_size is None:
             data = bytes(self.input_stream.read(self.CHUNK_SIZE))
@@ -112,13 +95,6 @@ class AudioSource(AudioSourceABC):
             assert isinstance(chunk_size, int), "`chunk_size` must be integer."
             data = bytes(self.input_stream.read(chunk_size))
         return data
-
-    @_under_audio_context
-    def write(self, data):
-        if not self.device_type == "output":
-            raise DeviceTypeError("Can not write to a non-output device.")
-
-        self.output_stream.write(chunk_size)
 
     @property
     def audio(self):
@@ -175,8 +151,6 @@ class AudioSource(AudioSourceABC):
     ## Other useful properties and methods
     @property
     def input_stream(self):
-        if self.device_type is not "input":
-            raise DeviceTypeError("The device type is not a input stream.")
 
         if self.audio is None:
             raise RuntimeError("Working outside of source context")
@@ -197,31 +171,6 @@ class AudioSource(AudioSourceABC):
             raise RuntimeError("Can not modify `input_stream` once it was assigned.")
         else:
             self.__input_stream = value
-
-    @property
-    def output_stream(self):
-
-        if not self.device_type is "output":
-            raise DeviceTypeError("The device type is not a output stream.")
-        
-        if self.audio is None:
-            raise RuntimeError("Working outside of source context")
-        self.__output_stream = self.audio.open(
-            output_device_index = self.device_index,
-            format = self.BIT_WIDTH,
-            rate = self.SAMPLE_RATE,
-            channels = self.CHANNELS,
-            frames_per_buffer = self.CHUNK_SIZE,
-            output = True
-            )
-        return self.__output_stream
-
-    @output_stream.setter
-    def output_stream(self, value):
-        if value is not None:
-            raise RuntimeError("Can not modify `output_stream` once it was assigned.")
-        else:
-            self.__output_stream = value
 
 
 class Microphone(AudioSource):
