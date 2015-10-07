@@ -96,7 +96,7 @@ class Recorder(AbstractRecorder):
 
 
     def set_source(self, source):
-        if not isinstance(source, AudioSource):
+        if not isinstance(source, AudioSourceABC):
             raise ValueError("`source` must be of type {}".format(AudioSource))
         self.__source = source
 

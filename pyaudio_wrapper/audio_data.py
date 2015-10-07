@@ -136,6 +136,35 @@ class AudioData(AudioDataABC):
         
         return len(self)/self.SAMPLE_RATE
 
+    def play(self, start = 0, stop = None):
+        
+        assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
+        assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
+
+        audio = pyaudio.PyAudio()
+        output_device_info = audio.get_default_output_device_info()
+        output_stream = audio.open(
+                        output_device_index = output_device_info["index"],
+                        output = True,
+                        format = self.format,
+                        rate = self.SAMPLE_RATE,
+                        channels = self.CHANNELS)
+        if start == 0 and stop is None:
+            output_stream.write(self.BYTE_DATA)
+        else:
+            start_index = int(round(self.SAMPLE_RATE * start))
+            if stop is not None:
+                stop_index = int(round(self.SAMPLE_RATE * stop))
+            else:
+                stop_index = stop
+
+            data = self[start_index:stop_index].tostring()
+            output_stream.write(data)
+
+        output_stream.stop_stream()
+        output_stream.close()
+        audio.terminate()
+
     def convert_sample_rate(self, out_rate):
         new_byte_data, _ = audioop.ratecv(self.BYTE_DATA,
                                        self.BIT_WIDTH,

@@ -157,12 +157,11 @@ class AudioSource(AudioSourceABC):
 
         self.__input_stream = self.audio.open(
             input_device_index = self.device_index,
-            format = self.BIT_WIDTH,
+            format = self.audio.get_format_from_width(self.BIT_WIDTH),
             rate = self.SAMPLE_RATE,
             channels = self.CHANNELS,
             frames_per_buffer = self.CHUNK_SIZE,
-            input = True
-            )
+            input = True)
         return self.__input_stream
 
     @input_stream.setter
