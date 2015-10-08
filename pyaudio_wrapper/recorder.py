@@ -11,6 +11,7 @@ from scipy.io import wavfile
 
 # submodules
 from .audio_data import AudioData, WavAudioData
+from .exceptions import PauseTimeout
 from ._source_abc import AudioSourceABC
 from ._recorder_abc import AbstractRecorder
 
@@ -28,6 +29,9 @@ class Recorder(AbstractRecorder):
         offset: offset of time in second.
         """
 
+        ## Wait for offset to be reached.
+        ## All data read from the source during offset time will be disgard.
+
         self.set_source(source)
         seconds_per_chunk = float(self.source.CHUNK_SIZE)/ self.source.SAMPLE_RATE # seconds per chunk.
 
@@ -36,41 +40,54 @@ class Recorder(AbstractRecorder):
         else:
             energy_threshold = 50
 
-        start_phase = False
+        if verbose:
+            print "The energy threshold has been set as {}. (default: 50)".format(energy_threshold)
+        
         offset_reached = False
-        pause_time = 0
         elapsed_time = 0
-        frames = []
 
-        while True:
+        while not offset_reached:
             
-            data = self.source.read()
+            self.source.read() # The data read during this time is disgarded.
             elapsed_time += seconds_per_chunk
             
             if elapsed_time > offset:
                 offset_reached = True
 
-            ## Start phase till detecting sound.
+        ## Detecting sound.
+        frames = []
+        start_phase = False
+        while not start_phase:
+            data = self.source.read()
+            elapsed_time += seconds_per_chunk
+
             energy = audioop.rms(data, self.source.BIT_WIDTH)
             if energy > energy_threshold:
                 frames.append(data)
-                print energy
                 start_phase = True
+            elif elapsed_time - offset > max_pause_time:
+                raise PauseTimeout("Pause time too long. Timeout the recording process.")
 
-            if start_phase and offset_reached:
+        if verbose:
+            print "Sound detected. Start recording."
+
+        pause_time = 0
+
+        while True:
+
+            data = self.source.read()
+            if audioop.rms(data, self.source.BIT_WIDTH) < energy_threshold:
+                pause_time += seconds_per_chunk
+            else:
+                frames.append(data)
+                pause_time = 0
+
+            if pause_time >= max_pause_time:
                 if verbose:
-                        print "Sound detected. Start recording."
-                while True:
-                    data = self.source.read()
-                    if audioop.rms(data, self.source.BIT_WIDTH) < energy_threshold:
-                        pause_time += seconds_per_chunk
-                    else:
-                        frames.append(data)
-                        pause_time = 0
-                    if pause_time >= max_pause_time:
-                        break
+                    print 'Pause time reached. Stopping recording process.'
+                break
                 
-                byte_data = b''.join(frames)
+        byte_data = b''.join(frames)
         if wav:
             return WavAudioData(byte_data, source.SAMPLE_RATE, source.BIT_WIDTH, source.CHANNELS)
         
@@ -82,6 +99,7 @@ class Recorder(AbstractRecorder):
 
         print "Detecting ambient noice level."
         print "Please keep silent for {} second(s).".format(sample_time)
+        
         frames = []
         elapsed_time = 0
         seconds_per_chunk = float(self.source.CHUNK_SIZE) / self.source.SAMPLE_RATE 

@@ -52,7 +52,6 @@ class AudioSource(AudioSourceABC):
         # audio resource and streams.
         self.__audio = None
         self.__input_stream = None
-        self.__output_stream = None
 
     @property
     def device_index(self):
@@ -76,12 +75,14 @@ class AudioSource(AudioSourceABC):
     def start(self):
         assert self.audio is None, "This audio source is already inside a context manager."
         self.audio = pyaudio.PyAudio()
+        self.input_stream.start_stream()
 
     @_under_audio_context
     def close(self):
         
         self.input_stream.stop_stream()
         self.input_stream.close()
+        self.input_stream = None
 
         self.audio.terminate()
         self.audio = None
@@ -150,19 +151,21 @@ class AudioSource(AudioSourceABC):
 
     ## Other useful properties and methods
     @property
+    @_under_audio_context
     def input_stream(self):
 
-        if self.audio is None:
-            raise RuntimeError("Working outside of source context")
-
-        self.__input_stream = self.audio.open(
-            input_device_index = self.device_index,
-            format = self.audio.get_format_from_width(self.BIT_WIDTH),
-            rate = self.SAMPLE_RATE,
-            channels = self.CHANNELS,
-            frames_per_buffer = self.CHUNK_SIZE,
-            input = True)
-        return self.__input_stream
+        if self.__input_stream is not None:
+            return self.__input_stream
+        else:
+            self.__input_stream = self.audio.open(
+                input_device_index = self.device_index,
+                format = self.audio.get_format_from_width(self.BIT_WIDTH),
+                rate = self.SAMPLE_RATE,
+                channels = self.CHANNELS,
+                frames_per_buffer = self.CHUNK_SIZE,
+                input = True,
+                start = False)
+            return self.__input_stream
 
     @input_stream.setter
     def input_stream(self, value):

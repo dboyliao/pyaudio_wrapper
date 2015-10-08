@@ -5,3 +5,9 @@ class DeviceTypeError(Exception):
     with the device type.
     """
     pass
+
+class PauseTimeout(Exception):
+    """
+    Raised when there is a pause timeout. eg: recording sound pause timeout.
+    """
+    pass

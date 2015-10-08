@@ -9,7 +9,7 @@ from ._audio_data_abc import AudioDataABC
 
 class AudioData(AudioDataABC):
 
-    def __init__(self, byte_data, sample_rate, bit_width, channels, dtype):
+    def __init__(self, byte_data, sample_rate, bit_width, channels, dtype = None):
         """
         byte_data: A byte string containing the raw data.
         BIT_WIDTH: bit width in bytes.
@@ -31,6 +31,9 @@ class AudioData(AudioDataABC):
         self.__sample_rate = sample_rate
         self.__byte_data = byte_data # a byte string
 
+        if dtype is None:
+            dtype = self._get_dtype_by_bit_width()
+
         if not self._validate_dtype(dtype):
             raise ValueError("`dtype` is not compatible with the `bit_width`.")
 
@@ -49,6 +52,15 @@ class AudioData(AudioDataABC):
             return True
 
         return False
+
+    def _get_dtype_by_bit_width(self):
+
+        if self.BIT_WIDTH == 1:
+            return np.int8
+        elif self.BIT_WIDTH == 2:
+            return np.int16
+        elif self.BIT_WIDTH in [3, 4]:
+            return np.int32
 
     @property
     def dtype(self):
