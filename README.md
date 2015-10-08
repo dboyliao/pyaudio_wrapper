@@ -57,7 +57,7 @@ bee_song.play()    # One well-known song. : )
 # My goal is to use this package to compose music in a simple way. XDD
 ```
 
-## Recording Audio Data From Microphone (Still Buggy)
+## Recording Audio Data From Microphone
 
 ```{python}
 from pyaudio_wrapper import Recorder
