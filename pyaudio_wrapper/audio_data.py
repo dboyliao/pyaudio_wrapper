@@ -143,10 +143,10 @@ class AudioData(AudioDataABC):
     @property
     def duration(self):
         """
-        Duration in second.
+        Duration in millisecond.
         """
         
-        return len(self)/self.SAMPLE_RATE
+        return int(round(len(self)*1000/float(self.SAMPLE_RATE)))
 
     def play(self, start = 0, stop = None):
         
@@ -170,7 +170,7 @@ class AudioData(AudioDataABC):
             else:
                 stop_index = stop
 
-            data = self[start_index:stop_index].tostring()
+            data = self.data[start_index:stop_index].tostring()
             output_stream.write(data)
 
         output_stream.stop_stream()
@@ -188,12 +188,31 @@ class AudioData(AudioDataABC):
         self.__byte_data = new_byte_data
 
     def __getitem__(self, i):
+
+        start = i.start
+        step = i.step
+        stop = i.stop
+
+        assert start is None or round(start) == start, "The start index must be integer or integer like (in millisecond)."
+        assert stop is None or round(stop) == stop, "The stop index must be integer or integer like (in millisecond)."
+        assert step is None or round(step) == step, "The step index must be integer or integer like (in millisecond)."
+
+
+        start_index = round(start/1000. * self.SAMPLE_RATE) if start is not None else start
+        stop_index = round(stop/1000. * self.SAMPLE_RATE) if stop is not None else stop
+
+        s = slice(start_index, stop_index, step)
+
         if self.CHANNELS == 1:
-            return self.data[i]
+            data = self.data[s].T
         elif self.CHANNELS == 2:
-            return self.data[:,i]
-        else:
-            return None
+            data = self.data[:, s].T
+
+        return type(self)(data.tostring(), 
+                          self.SAMPLE_RATE,
+                          self.BIT_WIDTH, 
+                          self.CHANNELS,
+                          self.dtype)
 
     def __len__(self):
         if self.CHANNELS == 1:
@@ -411,3 +430,29 @@ class WavFileAudioData(WavAudioData):
             raise ValueError("Can only multiply audio data by number.")
         
         return self * factor
+
+    def __getitem__(self, i):
+        
+        start = i.start
+        step = i.step
+        stop = i.stop
+
+        assert start is None or round(start) == start, "The start index must be integer or integer like (in millisecond)."
+        assert stop is None or round(stop) == stop, "The stop index must be integer or integer like (in millisecond)."
+        assert step is None or round(step) == step, "The step index must be integer or integer like (in millisecond)."
+
+        start_index = round(start/1000. * self.SAMPLE_RATE) if start is not None else start
+        stop_index = round(stop/1000. * self.SAMPLE_RATE) if stop is not None else stop
+
+        s = slice(start_index, stop_index, step)
+
+        if self.CHANNELS == 1:
+            data = self.data[s].T
+        elif self.CHANNELS == 2:
+            data = self.data[:, s].T
+
+        return WavAudioData(data.tostring(), 
+                            self.SAMPLE_RATE,
+                            self.BIT_WIDTH, 
+                            self.CHANNELS,
+                            self.dtype)
