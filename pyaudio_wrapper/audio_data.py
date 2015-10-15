@@ -149,6 +149,11 @@ class AudioData(AudioDataABC):
         return int(round(len(self)*1000/float(self.SAMPLE_RATE)))
 
     def play(self, start = 0, stop = None):
+        """
+        params:
+          `start`: start time in millisecond.
+          `stop`: stop time in millisecond
+        """
         
         assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
         assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
@@ -164,14 +169,14 @@ class AudioData(AudioDataABC):
         if start == 0 and stop is None:
             output_stream.write(self.BYTE_DATA)
         else:
-            start_index = int(round(self.SAMPLE_RATE * start))
+            start_index = int(round(self.SAMPLE_RATE * start / 1000.))
             if stop is not None:
-                stop_index = int(round(self.SAMPLE_RATE * stop))
+                stop_index = int(round(self.SAMPLE_RATE * stop / 1000.))
             else:
                 stop_index = stop
 
-            data = self.data[start_index:stop_index].tostring()
-            output_stream.write(data)
+            data = self.data[start_index:stop_index] if self.CHANNELS == 1 else self.data[:, start_index:stop_index].T
+            output_stream.write(data.tostring())
 
         output_stream.stop_stream()
         output_stream.close()
@@ -221,6 +226,12 @@ class AudioData(AudioDataABC):
             return len(self.data[0])
         else:
             return None
+
+    def __repr__(self):
+        samprate = self.SAMPLE_RATE
+        bit_width = self.BIT_WIDTH
+        channels = 'mono' if self.CHANNELS == 1 else "stereo"
+        return "WAV Audio: %s, %s, %s" % (samprate, bit_width, channels)
 
     def __str__(self):
         dest_string = "data: {}\nbit width: {}\nsample rate: {}\nnumber of frames: {}\n"
@@ -309,42 +320,6 @@ class WavAudioData(AudioData):
             data = wav_file.getvalue()
         return data
 
-
-    def play(self, start = 0, stop = None):
-        """
-        Play the audio data by default output device.
-
-        `start` <float>: where to start playing the audio (in seconds).
-        `stop` <float>: where to stop playing the audio (in seconds).
-        """
-
-        assert isinstance(start, (float, int)) and start >= 0, "`start` must be non-negative number."
-        assert isinstance(stop, (float, int)) and stop > start or stop is None, "`stop` can be either non-negative number or None. If it is a number, it must be larger than `start`."
-
-        audio = pyaudio.PyAudio()
-        output_device_info = audio.get_default_output_device_info()
-        output_stream = audio.open(
-                        output_device_index = output_device_info["index"],
-                        output = True,
-                        format = self.format,
-                        rate = self.SAMPLE_RATE,
-                        channels = self.CHANNELS)
-        if start == 0 and stop is None:
-            output_stream.write(self.raw_wav_data)
-        else:
-            start_index = int(round(self.SAMPLE_RATE * start))
-            if stop is not None:
-                stop_index = int(round(self.SAMPLE_RATE * stop))
-            else:
-                stop_index = stop
-
-            data = self.__get_raw_wav_data_from_array(self[start_index:stop_index])
-            output_stream.write(data)
-
-        output_stream.stop_stream()
-        output_stream.close()
-        audio.terminate()
-
     def save(self, fname, path = None):
         """
         Save audio data as wav file.
@@ -393,6 +368,10 @@ class WavFileAudioData(WavAudioData):
                                                channels = channels,
                                                dtype = data.dtype)
         self.fname = fname
+
+    def __repr__(self):
+
+        return 'WAV File: %s' % self.fname
 
     def __add__(self, other):
         """
