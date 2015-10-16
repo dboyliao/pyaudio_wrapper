@@ -105,7 +105,7 @@ class AudioAnalysor(object):
         zoom_ax = axs[-1]
         zoom_ax.set_axis_bgcolor("#E6E6B8")
         zoom_ax.title.set_text("Selected Segment")
-        zoom_line, = zoom_ax.plot([], [])
+        zoom_line, = zoom_ax.plot([], [], "#008A2E")
 
         for i in range(len(coefs)):
             coef = coefs[i]

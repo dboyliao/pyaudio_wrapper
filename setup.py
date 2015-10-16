@@ -56,7 +56,7 @@ class install_cmd(install):
         except ImportError:
             # pyaudio is not installed. Build portaudio and install pyaudio.
             print "[Info] pyaudio is not installed...."
-            print "[Info] Installing pyaudio and its dependencies...."
+            print "\033[1;36m[Info] Installing pyaudio and its dependencies....\033[0m"
             if sys.platform == 'darwin': # OS X
                 # Install portaudio using brew.
                 subprocess.call("brew update && brew install portaudio", shell = True)
