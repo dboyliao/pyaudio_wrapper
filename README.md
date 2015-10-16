@@ -11,23 +11,43 @@ from pyaudio_wrapper.audio_data import WavFileAudioData
 
 wav_audio = WavFileAudioData("tests/data/my_voice.wav")
 
-wav_audio.raw_wav_data # Get the raw wav data in bytes.
-wav_audio.duration     # duration of the audio file in seconds.
-wav_audio.data         # A numpy array of the wav audio data.
-wav_audio.play()       # Play out the audio.
-wav_audio.play(start = 3, stop = 10) # Play the audio from 3 sec to 10 sec.
+# Get the raw wav data in bytes.
+wav_audio.raw_wav_data
+
+# duration of the audio file in milliseconds.
+wav_audio.duration     
+# >>> 3008
+
+# A numpy array of the wav audio data.
+wav_audio.data         
+
+# Play the audio.
+wav_audio.play()       
+
+# Play the audio from 500 millisecond to 1500 millisecond.
+wav_audio.play(500, 1500)
+
+# Segmentation of audio data
+# segment from 500 millisecond to 2500 millisecond.
+wav_segment = wav_audio[500:1500] 
+wav_segment.play() # just work!
 ```
 
 ## Analyse Audio Data
 
 ```{python}
-from pyaudio_wrapper.analyse import Analysor
+from pyaudio_wrapper.analyse import AudioAnalysor
 
-analysor = Analysor(wav_audio)
-analysor.plot() # plot the audio data.
+analysor = AudioAnalysor(wav_audio)
+
+# plot the audio data.
+analysor.plot() 
+analysor.show()
 ```
 ![analysor_plot](img/analysor_plot.png)
 
+You can also use your mouse to select a segment of the data then you will see the zoomed-in image of that segment in the subplot below. Moreover, you will hear the sound the that segment right away.
+![plot_segment](img/plot_segment.png)
 
 If the audio is stereo, you will see something like this:
 ![plot_stereo](img/plot_stereo.png)
@@ -39,7 +59,8 @@ coef = analysor.fft() # fast fourier transform.
 
 ```{python}
 # Or you can plot the spectrum.
-coef = analysor.fft(plot = True)
+analysor.plot_spectrum()
+analysor.show()
 ```
 ![fft_plot](img/fft_plot.png)
 
@@ -51,8 +72,8 @@ If the audio is stereo, you will see something like this:
 ```{python}
 from pyaudio_wrapper.notes import *
 
-(C + D).play()     # play Do and Re for 1 sec, repsectively
-bee_song.play()    # One well-known song. : )
+(C + D).play()     # play Do and Re for 0.5 sec, repsectively
+happy.play()    # One well-known song. : )
 
 # My goal is to use this package to compose music in a simple way. XDD
 ```
@@ -77,7 +98,10 @@ wav_audio.save('record.wav') # save the audio as a wav file.
 ```
 git clone https://github.com/dboyliao/pyaudio_wrapper.git
 cd pyaudio_wrapper
-make install      # Run `make uninstall` if you want to uninstall this package.
+make install
+
+# Run `make uninstall` if you want to uninstall this package.
+# Before remove related files from your computer, there will be a prompt shows up asking you whether to remove the files from the directory shows up in the prompt message. Be sure that directory is correct one or the uninstallation will just be skipped. 
 ```
 
 # Troble Shooting

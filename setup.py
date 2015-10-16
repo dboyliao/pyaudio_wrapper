@@ -143,7 +143,7 @@ class uninstall_cmd(Command):
             if self.verbose:
                 print '[Info] Package path found: \033[1;36m{}\033[0m'.format(package_path)
                 confirm = raw_input("Are you sure to remove this directory ([y]/n)? ")
-                confirm = 'yes' if confirm.lower() in ['yes', 'y', ''] else 'no'
+                confirm = 'yes' if confirm.lower() in ['yes', 'y'] else 'no'
 
                 if not confirm == 'yes':
                     print "[Info] Abort uninstallation."

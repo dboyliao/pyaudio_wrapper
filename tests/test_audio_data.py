@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 from pyaudio_wrapper import audio_data
 import wave
 
-wav_file = wave.open("./tests/data/my_voice.wav")
+wav_file = wave.open("./data/my_voice.wav")
 data_buffer = wav_file.readframes(1024)
 data = [data_buffer]
 while True:
@@ -10,3 +12,6 @@ while True:
     data.append(data_buffer)
 
 byte_data = b''.join(data)
+
+a = audio_data.AudioData(byte_data, wav_file.getframerate(), wav_file.getsampwidth(), wav_file.getnchannels())
+a.play()

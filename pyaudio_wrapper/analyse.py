@@ -1,9 +1,10 @@
 __all__ = ["AudioAnalysor"]
 
 from itertools import cycle as _cycle
+from collections import defaultdict as _defaultdict
 
 import matplotlib.pyplot as _plt
-from matplotlib.widgets import SpanSelector
+from matplotlib.widgets import SpanSelector as _SpanSelector
 import numpy as _np
 import scipy.fftpack as _fftpack
 import scipy.signal as _sg
@@ -16,11 +17,20 @@ class AudioAnalysor(object):
 
     def __init__(self, audio_data):
 
+        # __current_widgets is here to keep the reference to active widgets
+        # This will prevent those widgets to be garbage collected.
+        self.__current_widgets = _defaultdict(lambda: [])
+        self.__current_figs = []
+        self.__cached_fft = None
+
+        # Setup the audio data to be analysed.
         self.set_audio_data(audio_data)
-        self.__temp_selector = []
 
     @property
     def audio_data(self):
+        """
+        Current audio data to be analysed.
+        """
         return self.__audio_data
 
     @audio_data.setter
@@ -28,16 +38,27 @@ class AudioAnalysor(object):
         raise RuntimeError("Use `set_audio_data` method to set the current audio data.")
 
     def set_audio_data(self, audio_data):
+        """
+        Set up the audio data.
+        """
         if not isinstance(audio_data, _AudioData):
             raise ValueError("`audio_data` must be of type {}.".format(AudioData))
+        
         self.__audio_data = audio_data
 
+        self.__current_widgets = _defaultdict(lambda: [])
+        self.__current_figs = []
+        self.__cached_fft = None
 
-    def fft(self, colors = 'rb', normalize = False, plot = False):
+
+    def fft(self, normalize = False):
+        """
+        params:
+            `normalize`: if True, the data will be normalize before pass to fft. Default is False.
+        """
         
         coefs = []
         data = self.audio_data.data
-        colors = _cycle(colors)
 
         if normalize:
             if self.audio_data.dtype in [_np.uint8, _np.uint16, _np.uint32]:
@@ -58,30 +79,62 @@ class AudioAnalysor(object):
             coefs.append(c1)
             c2 = _fftpack.fft(data[1])[:N/2]
             coefs.append(c2)
+        self.__cached_fft = coefs
 
-        # plot the spectrum.
-        if plot:
-            fig, axs = _plt.subplots(len(coefs), 1)
-            fig.suptitle("Fast Fourier Transform")
-
-            for i in range(len(coefs)):
-                coef = coefs[i]
-                color = colors.next()
-                ax = axs[i]
-
-                ax.title.set_text("Channel {}".format(i+1))
-                ax.plot(abs(coef[1:N/2]), color)
         return coefs
 
+    def plot_spectrum(self, colors = None):
+        """
+        params:
+            `colors`: any interable of symbols of color `supported` by matplotlib
+        """
+
+        if colors is None:
+            colors = _cycle(["#FF6600", "#0033CC"])
+        else:
+            colors = _cycle(colors)
+
+        N = len(self.audio_data.data) if self.audio_data.CHANNELS == 1 else len(self.audio_data.data[0])
+
+        if self.__cached_fft is None:
+            self.fft()
+
+        coefs = self.__cached_fft
+
+        fig, axs = _plt.subplots(len(coefs) + 1, 1, figsize = (20, 7))
+        for i in range(len(coefs)):
+            coef = coefs[i]
+            color = colors.next()
+            ax = axs[i]
+
+            ax.set_axis_bgcolor("#E6E6B8")
+            ax.title.set_text("Channel {}".format(i+1))
+            ax.plot(abs(coef[1:N/2]), color)
+
+        zoom_ax = axs[-1]
+        zoom_ax.set_axis_bgcolor("#E6E6B8")
+        zoom_ax.title.set_text("Selected Segment")
+        self.__current_figs.append(fig)
+        fig.subplots_adjust(top = 0.9, hspace = 0.3)
+
+
     def plot(self, by_sec = True, colors = None):
+        """
+        Plot the audio data.
+
+        params:
+            `by_sec`: if True, it will plot the audio in second or it will plot
+                      the audio data in the number of frames.
+            `colors`: Any iterable of symbols of color supported by matplotlib.
+        """
         if colors is None:
             colors = _cycle(["#FF6600", "#0033CC"])
         else:
             colors = _cycle(colors)
         
         num_subplots = self.audio_data.CHANNELS + 1
-        fig, axs = _plt.subplots(num_subplots, 1)
-        fig.suptitle(repr(self.audio_data))
+        fig, axs = _plt.subplots(num_subplots, 1, figsize = (20, 7))
+        fig.suptitle(repr(self.audio_data), fontsize = 14, y = 1)
         frames = [self.audio_data.data[i] for i in range(2)] if self.audio_data.CHANNELS == 2 else [self.audio_data.data]
 
         if by_sec:
@@ -93,18 +146,19 @@ class AudioAnalysor(object):
 
         zoom_ax = axs[-1]
         zoom_ax.set_axis_bgcolor("#E6E6B8")
+        zoom_ax.title.set_text("Selected Segment")
         zoom_ax.xaxis.set_label_text(x_label)
         zoom_ax.yaxis.set_label_text("Altitude")
-        zoom_line, = zoom_ax.step([], [], "#008A2E")
+        zoom_line, = zoom_ax.plot([], [], "#008A2E")
 
         temp = []
-        for i, item in enumerate(zip(axs[:-1], frames)):
+        for i, (ax, frame) in enumerate(zip(axs[:-1], frames)):
             color = colors.next()
-            ax, frame = item
 
             ax.title.set_text("Channel {}".format(i+1))
             ax.set_axis_bgcolor("#E6E6B8")
-            ax.step(x, frame, color)
+            ax.plot(x, frame, color)
+            ax.set_xlim(x[0], x[-1])
             ax.xaxis.set_label_text(x_label)
             ax.yaxis.set_label_text("Altitude")
 
@@ -112,25 +166,40 @@ class AudioAnalysor(object):
 
                 indmin, indmax = _np.searchsorted(x, (xmin, xmax))
                 indmax = min(len(frames[0]) - 1, indmax)
+
+
                 x_segment = x[indmin:indmax]
                 y_segment = frame[indmin:indmax]
                 zoom_line.set_data(x_segment, y_segment)
                 zoom_ax.set_xlim(x_segment[0], x_segment[-1])
                 zoom_ax.set_ylim(y_segment.min(), y_segment.max())
-                _plt.draw()
 
+                if by_sec:
+                    x_start = int(self.audio_data.duration * float(indmin) / len(x))
+                    x_stop = int(self.audio_data.duration * float(indmax) / len(x))
+                else:
+                    x_start = indmin
+                    x_stop = indmax
+                
                 start_time = self.audio_data.duration * float(indmin) / len(x)
                 stop_time = self.audio_data.duration * float(indmax) / len(x)
-                self.audio_data.play(start_time, stop_time)
+                zoom_ax.title.set_text("Selected Segment: {} to {}".format(x_start, x_stop))
+                _plt.draw()
 
-            self.__temp_selector.append(SpanSelector(ax, onselect_callback, 'horizontal', span_stays = True, 
-                                        rectprops = dict(alpha = 0.5, facecolor = 'cyan')))
-        
-        fig.tight_layout()
+                self.audio_data.play(start_time, stop_time)
+            
+            span_selector = _SpanSelector(ax, onselect_callback, 'horizontal', span_stays = True, 
+                                          rectprops = dict(alpha = 0.5, facecolor = 'cyan'))
+            self.__current_widgets["span_selectors"].append(span_selector)
+        fig.subplots_adjust(top = 0.9, hspace = 0.7)
+        self.__current_figs.append(fig)
 
     def show(self):
+        """
+        Show the plots.
+        """
         _plt.show()
-        self.__temp_selector = []
+        self.__current_widgets = _defaultdict(lambda: []) # clean up the widgets.
 
     def get_analytic_signal(self):
         return _sg.hilbert(self.audio_data.data)
