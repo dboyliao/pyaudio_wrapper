@@ -101,7 +101,11 @@ cd pyaudio_wrapper
 make install
 
 # Run `make uninstall` if you want to uninstall this package.
-# Before remove related files from your computer, there will be a prompt shows up asking you whether to remove the files from the directory shows up in the prompt message. Be sure that directory is correct one or the uninstallation will just be skipped. 
+# Before remove related files from your computer, there will 
+# be a prompt shows up asking you whether to remove the files 
+# from the directory shows up in the prompt message. Be sure 
+# that the directory is correct one or the uninstallation will
+# just be skipped. 
 ```
 
 # Troble Shooting
