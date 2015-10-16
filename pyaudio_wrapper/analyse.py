@@ -102,18 +102,40 @@ class AudioAnalysor(object):
         coefs = self.__cached_fft
 
         fig, axs = _plt.subplots(len(coefs) + 1, 1, figsize = (20, 7))
+        zoom_ax = axs[-1]
+        zoom_ax.set_axis_bgcolor("#E6E6B8")
+        zoom_ax.title.set_text("Selected Segment")
+        zoom_line, = zoom_ax.plot([], [])
+
         for i in range(len(coefs)):
             coef = coefs[i]
+            y = _np.abs(coef[1:N/2])
+            x = _np.arange(len(y))
             color = colors.next()
             ax = axs[i]
 
             ax.set_axis_bgcolor("#E6E6B8")
             ax.title.set_text("Channel {}".format(i+1))
-            ax.plot(abs(coef[1:N/2]), color)
+            ax.plot(x, y, color)
 
-        zoom_ax = axs[-1]
-        zoom_ax.set_axis_bgcolor("#E6E6B8")
-        zoom_ax.title.set_text("Selected Segment")
+            def onselect_callback(xmin, xmax):
+
+                indmin, indmax = _np.searchsorted(x, (xmin, xmax))
+                indmax = min(len(y) - 1, indmax)
+
+                x_segment = x[indmin:indmax]
+                y_segment = y[indmin:indmax]
+                zoom_line.set_data(x_segment, y_segment)
+                zoom_ax.set_xlim(x_segment[0], x_segment[-1])
+                zoom_ax.set_ylim(y_segment.min(), y_segment.max())
+                zoom_ax.title.set_text("Selected Segment: {} to {}".format(indmin, indmax))
+                
+                _plt.draw()
+
+            span_selector = _SpanSelector(ax, onselect_callback, 'horizontal', span_stays = True, 
+                                          rectprops = dict(alpha = 0.5, facecolor = 'cyan'))
+            self.__current_widgets["span_selectors"].append(span_selector)
+
         self.__current_figs.append(fig)
         fig.subplots_adjust(top = 0.9, hspace = 0.3)
 
@@ -166,7 +188,6 @@ class AudioAnalysor(object):
 
                 indmin, indmax = _np.searchsorted(x, (xmin, xmax))
                 indmax = min(len(frames[0]) - 1, indmax)
-
 
                 x_segment = x[indmin:indmax]
                 y_segment = frame[indmin:indmax]

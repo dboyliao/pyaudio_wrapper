@@ -28,7 +28,7 @@ wav_audio.play()
 wav_audio.play(500, 1500)
 
 # Segmentation of audio data
-# segment from 500 millisecond to 2500 millisecond.
+# segment from 500 millisecond to 1500 millisecond.
 wav_segment = wav_audio[500:1500] 
 wav_segment.play() # just work!
 ```
