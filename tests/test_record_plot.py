@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 
+import argparse
 from pyaudio_wrapper import Microphone, Recorder
 from pyaudio_wrapper.analyse import AudioAnalysor
 from pyaudio_wrapper.exceptions import PauseTimeout
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--by_sec", dest = "by_sec", action = "store_true")
+
+args = parser.parse_args()
+by_sec = args.by_sec
 
 r = Recorder()
 
@@ -13,7 +20,7 @@ while True:
             audio_data = r.record(source, verbose = True)
 
         a = AudioAnalysor(audio_data)
-        a.plot(by_sec = False)
+        a.plot(by_sec = by_sec)
         a.show()
     except PauseTimeout:
         to_break = raw_input("Break process? ([y]/n): ")

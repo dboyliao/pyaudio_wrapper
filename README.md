@@ -46,7 +46,7 @@ analysor.show()
 ```
 ![analysor_plot](img/analysor_plot.png)
 
-You can also use your mouse to select a segment of the data then you will see the zoomed-in image of that segment in the subplot below. Moreover, you will hear the sound the that segment right away.
+You can also use your mouse to select a segment of the data and then you will see the zoomed-in image of that segment in the subplot below. Moreover, you will hear the sound of that segment right away.
 ![plot_segment](img/plot_segment.png)
 
 If the audio is stereo, you will see something like this:

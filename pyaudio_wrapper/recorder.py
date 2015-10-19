@@ -79,8 +79,9 @@ class Recorder(AbstractRecorder):
             if audioop.rms(data, self.source.BIT_WIDTH) < energy_threshold:
                 pause_time += seconds_per_chunk
             else:
-                frames.append(data)
                 pause_time = 0
+            
+            frames.append(data)
 
             if pause_time >= max_pause_time:
                 if verbose:
