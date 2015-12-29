@@ -1,11 +1,14 @@
 __all__ = ["AudioData", "WavAudioData", "WavFileAudioData"]
 
-import io, wave, os, audioop
+import io, wave, os, audioop, sys
 import numpy as np
 from scipy.io import wavfile
 import pyaudio
 
 from ._audio_data_abc import AudioDataABC
+
+if sys.version_info > (3,):
+    long = int
 
 class AudioData(AudioDataABC):
 

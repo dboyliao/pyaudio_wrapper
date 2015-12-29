@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os, sys, subprocess
 from setuptools import setup, find_packages, Command
 from setuptools.command.install import install
@@ -9,9 +10,9 @@ from pyaudio_wrapper import __authors__, __version__, __license__
 
 
 if sys.platform == "win32":
-    print "Sorry, I don't know how to install this package on windows."
-    print "Though pyaudio and portaudio are cross-platform."
-    print "Abort installation."
+    print("Sorry, I don't know how to install this package on windows."
+          "Though pyaudio and portaudio are cross-platform."
+          "Abort installation.")
 
     sys.exit(1)
 
@@ -45,7 +46,7 @@ class install_cmd(install):
     """
 
     def run(self):
-        print "[Info] Installing pyaudio_wrapper."
+        print("[Info] Installing pyaudio_wrapper.")
 
         try:
             # Try to import pyaudio
@@ -55,8 +56,8 @@ class install_cmd(install):
 
         except ImportError:
             # pyaudio is not installed. Build portaudio and install pyaudio.
-            print "[Info] pyaudio is not installed...."
-            print "\033[1;36m[Info] Installing pyaudio and its dependencies....\033[0m"
+            print("[Info] pyaudio is not installed....")
+            print("\033[1;36m[Info] Installing pyaudio and its dependencies....\033[0m")
             if sys.platform == 'darwin': # OS X
                 # Install portaudio using brew.
                 subprocess.call("brew update && brew install portaudio", shell = True)
@@ -75,16 +76,16 @@ class install_cmd(install):
                 # Intall pyaudio.
                 subprocess.call('apt-get install -y python-pyaudio', shell = True)
 
-        print "[Info] Installing other required packages from requirements.txt"
+        print("[Info] Installing other required packages from requirements.txt")
         subprocess.call('pip install -r requirements.txt', shell = True)
         install.run(self)
 
-        print '[Info] Cleaning up temp files.'
+        print('[Info] Cleaning up temp files.')
         subprocess.call('rm -rf dist', shell = True)
         subprocess.call('rm -rf pyaudio_wrapper.egg-info', shell = True)
         subprocess.call('rm -rf build', shell = True)
 
-        print "Installation sucess."
+        print("Installation sucess.")
 
 class develop_cmd(develop):
 
@@ -94,8 +95,8 @@ class develop_cmd(develop):
         if self.uninstall:
             package_path = find_package_path("pyaudio_wrapper")
             if package_path is not None:
-                print "[Info] Detecting import hook in easy-install.pth"
-                print "[Info] Clean import hook."
+                print("[Info] Detecting import hook in easy-install.pth")
+                print("[Info] Clean import hook.")
 
                 pth = os.path.join(os.path.dirname(easy_install.__file__), 'easy-install.pth')
 
@@ -111,8 +112,8 @@ class develop_cmd(develop):
                     pth_file.write(''.join(to_write))
                     pth_file.close()
                 except Exception as e:
-                    print e
-                    print "[Error] Cannot clean the import hook."
+                    print(e)
+                    print("[Error] Cannot clean the import hook.")
                     sys.exit(1)
 
 
@@ -135,54 +136,56 @@ class uninstall_cmd(Command):
         force = self.force is not None
 
         if self.verbose:
-            print '[Info] Uninstalling pyaudio_wrapper...'
-            print '[Info] Looking for package directory...'
+            print('[Info] Uninstalling pyaudio_wrapper...')
+            print('[Info] Looking for package directory...')
         
         package_path = find_package_path("pyaudio_wrapper")
         if package_path is not None:
             if self.verbose:
-                print '[Info] Package path found: \033[1;36m{}\033[0m'.format(package_path)
+                print('[Info] Package path found: \033[1;36m{}\033[0m'.format(package_path))
                 confirm = raw_input("Are you sure to remove this directory (y/[n])? ")
                 confirm = 'yes' if confirm.lower() in ['yes', 'y'] else 'no'
 
                 if not confirm == 'yes':
-                    print "[Info] Abort uninstallation."
+                    print("[Info] Abort uninstallation.")
                     sys.exit(1)
 
                 if force:
-                    print "[Info] Running command: rm -rf {}".format(package_path)
+                    print("[Info] Running command: rm -rf {}".format(package_path))
                     subprocess.call('rm -rf {}'.format(package_path), shell = True)
                 else:
-                    print "[Info] Running command: rm -r {}".format(package_path)
+                    print("[Info] Running command: rm -r {}".format(package_path))
                     subprocess.call('rm -r {}'.format(package_path), shell = True)
-                print "[Info] Sucessfully uninstall pyaudio_wrapper."
+                print("[Info] Sucessfully uninstall pyaudio_wrapper.")
             else:
                 if force:
                     subprocess.call('rm -rf {}'.format(package_path), shell = True)
                 else:
                     subprocess.call('rm -r {}'.format(package_path), shell = True)
         else:
-            print "[Error] pyaudio_wrapper has not been installed yet."
-            print "[Info] Abort uninstalling process"
+            print("[Error] pyaudio_wrapper has not been installed yet.")
+            print("[Info] Abort uninstalling process")
             sys.exit(1)
 
 
-setup(
-    name = "pyaudio_wrapper",
-    version = ".".join(__version__),
-    author = ", ".join(__authors__),
-    author_email = "qmalliao@gmail.com",
-    description = ("A simple wrapper of PyAudio."),
-    long_description = read("README.md"),
-    license = __license__,
-    keywords = "pyaudio wrapper",
-    url = "https://github.com/dboyliao/pyaudio_wrapper",
-    packages = find_packages(exclude = ['tests']),
-    install_requires = ["pyaudio",
-                        "numpy",
-                        "scipy",
-                        "matplotlib"],
-    cmdclass = {'uninstall': uninstall_cmd,
-                'install': install_cmd,
-                'develop': develop_cmd}
-)
+if __name__ == "__main__":
+    
+    setup(
+        name = "pyaudio_wrapper",
+        version = ".".join(__version__),
+        author = ", ".join(__authors__),
+        author_email = "qmalliao@gmail.com",
+        description = ("A simple wrapper of PyAudio."),
+        long_description = read("README.md"),
+        license = __license__,
+        keywords = "pyaudio wrapper",
+        url = "https://github.com/dboyliao/pyaudio_wrapper",
+        packages = find_packages(exclude = ['tests']),
+        install_requires = ["pyaudio",
+                            "numpy",
+                            "scipy",
+                            "matplotlib"],
+        cmdclass = {'uninstall': uninstall_cmd,
+                    'install': install_cmd,
+                    'develop': develop_cmd}
+    )

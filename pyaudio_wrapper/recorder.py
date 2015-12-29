@@ -41,7 +41,7 @@ class Recorder(AbstractRecorder):
             energy_threshold = 50
 
         if verbose:
-            print "The energy threshold has been set as {}. (default: 50)".format(energy_threshold)
+            print("The energy threshold has been set as {}. (default: 50)".format(energy_threshold))
         
         offset_reached = False
         elapsed_time = 0
@@ -69,7 +69,7 @@ class Recorder(AbstractRecorder):
                 raise PauseTimeout("Pause time too long. Timeout the recording process.")
 
         if verbose:
-            print "Sound detected. Start recording."
+            print("Sound detected. Start recording.")
 
         pause_time = 0
 
@@ -85,7 +85,7 @@ class Recorder(AbstractRecorder):
 
             if pause_time >= max_pause_time:
                 if verbose:
-                    print 'Pause time reached. Stopping recording process.'
+                    print('Pause time reached. Stopping recording process.')
                 break
                 
         byte_data = b''.join(frames)
@@ -98,8 +98,8 @@ class Recorder(AbstractRecorder):
 
         assert isinstance(sample_time, int), "`sample_time` must be integer."
 
-        print "Detecting ambient noice level."
-        print "Please keep silent for {} second(s).".format(sample_time)
+        print("Detecting ambient noice level.")
+        print("Please keep silent for {} second(s).".format(sample_time))
         
         frames = []
         elapsed_time = 0

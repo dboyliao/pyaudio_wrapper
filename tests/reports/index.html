@@ -1,0 +1,167 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">31%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+
+<div id="index">
+    <table class="index">
+        <thead>
+            
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>388</td>
+                <td>269</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="119 388">31%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper_py.html">pyaudio_wrapper.py</a></td>
+                <td>9</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="9 9">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper__audio_data_abc_py.html">pyaudio_wrapper/_audio_data_abc.py</a></td>
+                <td>13</td>
+                <td>4</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="9 13">69%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper__recorder_abc_py.html">pyaudio_wrapper/_recorder_abc.py</a></td>
+                <td>7</td>
+                <td>1</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="6 7">86%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper__source_abc_py.html">pyaudio_wrapper/_source_abc.py</a></td>
+                <td>25</td>
+                <td>10</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="15 25">60%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper__utils_py.html">pyaudio_wrapper/_utils.py</a></td>
+                <td>21</td>
+                <td>9</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="12 21">57%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper_audio_data_py.html">pyaudio_wrapper/audio_data.py</a></td>
+                <td>232</td>
+                <td>185</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="47 232">20%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper_exceptions_py.html">pyaudio_wrapper/exceptions.py</a></td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="4 4">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="pyaudio_wrapper_recorder_py.html">pyaudio_wrapper/recorder.py</a></td>
+                <td>77</td>
+                <td>60</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="17 77">22%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.org">coverage.py v4.0.3</a>,
+            created at 2015-12-29 14:36
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

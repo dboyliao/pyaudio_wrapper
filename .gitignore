@@ -4,3 +4,4 @@
 temp*.*
 .temp*
 trump*
+__pycache__

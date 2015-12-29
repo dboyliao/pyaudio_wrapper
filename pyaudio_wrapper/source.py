@@ -6,7 +6,7 @@ __all__ = ["Microphone", "AudioSource"]
 
 ## Import standard libraries.
 from functools import wraps
-import os
+import os, sys
 
 ## Import necessary third party packages.
 from scipy.io import wavfile
@@ -14,9 +14,12 @@ import pyaudio
 
 ## Import submodules.
 from ._source_abc import AudioSourceABC
-from _utils import _under_audio_context
+from ._utils import _under_audio_context
 from .audio_data import AudioData, WavAudioData
 from .exceptions import DeviceTypeError
+
+if sys.version_info >= (3, ):
+    long = int
 
 class AudioSource(AudioSourceABC):
 
@@ -178,7 +181,7 @@ class AudioSource(AudioSourceABC):
 class Microphone(AudioSource):
 
     
-    def __init__(self, bit_width = 2L, chunk_size = 8092, channels = 1):
+    def __init__(self, bit_width = 2, chunk_size = 8092, channels = 1):
         
         audio = pyaudio.PyAudio()
         info = audio.get_default_input_device_info()

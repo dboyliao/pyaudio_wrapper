@@ -16,7 +16,7 @@ r = Recorder()
 while True:
     try:
         with Microphone(channels = 2) as source:
-            print "Start recording"
+            print("Start recording")
             audio_data = r.record(source, verbose = True)
 
         a = AudioAnalysor(audio_data)
