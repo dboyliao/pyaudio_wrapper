@@ -1,6 +1,6 @@
 # A Simple Audio Wrapper of PyAudio
 
-[`PyAudio`](https://people.csail.mit.edu/hubert/pyaudio/) is a python bindings for [`PortAudio`](http://www.portaudio.com/). However, the api, to my humble opinion, is not so friendly to the programmer who has no deep or comprehensive knowledge about audio data. This package is yet again another wrapper build upon `PyAudio` in order to provide a friendly api.
+[`PyAudio`](https://people.csail.mit.edu/hubert/pyaudio/) is a python binding for [`PortAudio`](http://www.portaudio.com/). However, the api, to my humble opinion, is not so friendly to the programmer who has no deep or comprehensive knowledge about audio data. This package is yet another wrapper build upon `PyAudio` in order to provide a friendly api.
 
 # Basic Usage
 
@@ -11,7 +11,7 @@ from pyaudio_wrapper.audio_data import WavFileAudioData
 
 wav_audio = WavFileAudioData("tests/data/my_voice.wav")
 
-# Get the raw wav data in bytes.
+# Get the raw wav data in bytes string(hex format).
 wav_audio.raw_wav_data
 
 # duration of the audio file in milliseconds.

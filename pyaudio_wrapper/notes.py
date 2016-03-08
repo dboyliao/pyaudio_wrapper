@@ -1,7 +1,8 @@
 __all__ = ["C", "D_m", "D",
            "E", "E_m", "F",
            "G_m", "G", "A_m",
-           "A", "B_m", "B", "empty"]
+           "A", "B_m", "B", "empty",
+           "half_empty", "happy", "bee_song"]
 
 import numpy as np
 from .audio_data import WavAudioData
